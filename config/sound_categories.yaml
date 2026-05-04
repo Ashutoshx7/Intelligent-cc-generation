@@ -1,0 +1,70 @@
+high_impact:
+  description: "Always narratively significant — caption even without visual reaction"
+  classes:
+    - "Gunshot, gunfire"
+    - "Explosion"
+    - "Scream"
+    - "Glass"
+    - "Siren"
+    - "Alarm"
+    - "Thunder"
+    - "Vehicle horn, car horn, honking"
+    - "Car alarm"
+    - "Fire alarm"
+    - "Shatter"
+  audio_weight: 0.85
+  visual_weight: 0.15
+  threshold: 0.30
+
+interactive:
+  description: "Only caption if someone on screen reacts"
+  classes:
+    - "Doorbell"
+    - "Knock"
+    - "Telephone bell ringing"
+    - "Dog"
+    - "Cat"
+    - "Whistle"
+    - "Ringtone"
+  audio_weight: 0.40
+  visual_weight: 0.60
+  threshold: 0.50
+
+social:
+  description: "Human non-speech sounds — context dependent"
+  classes:
+    - "Laughter"
+    - "Applause"
+    - "Crying, sobbing"
+    - "Crowd"
+    - "Cheering"
+    - "Cough"
+    - "Sneeze"
+    - "Clapping"
+    - "Booing"
+  audio_weight: 0.55
+  visual_weight: 0.45
+  threshold: 0.45
+
+ambient:
+  description: "Almost never caption unless very prominent + visible reaction"
+  classes:
+    - "Music"
+    - "Rain"
+    - "Wind"
+    - "Traffic noise, roadway noise"
+    - "Stream"
+    - "Bird"
+    - "Insect"
+    - "Engine"
+    - "White noise"
+    - "Silence"
+  audio_weight: 0.25
+  visual_weight: 0.75
+  threshold: 0.70
+
+default:
+  description: "Fallback for any YAMNet class not in the above categories"
+  audio_weight: 0.60
+  visual_weight: 0.40
+  threshold: 0.45

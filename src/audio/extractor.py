@@ -1,0 +1,106 @@
+"""Extract audio track from video as 16kHz mono WAV."""
+import subprocess
+import shutil
+import os
+import logging
+import numpy as np
+
+logger = logging.getLogger(__name__)
+
+
+def extract_audio(video_path: str, output_path: str = None, sample_rate: int = 16000) -> str:
+    """
+    Extract audio from any video container to 16kHz mono WAV.
+
+    Tries ffmpeg first. If ffmpeg is not installed, looks for a pre-existing
+    WAV file alongside the video (e.g., video_audio.wav).
+
+    Args:
+        video_path: Path to input video (mp4, mkv, avi, mov, etc.)
+        output_path: Where to write WAV. If None, auto-generates from video name.
+        sample_rate: Target sample rate (16000 for YAMNet).
+
+    Returns:
+        Path to the output WAV file.
+
+    Raises:
+        FileNotFoundError: If video_path doesn't exist.
+        RuntimeError: If extraction fails by all methods.
+    """
+    if not os.path.exists(video_path):
+        raise FileNotFoundError(f"Video not found: {video_path}")
+
+    base = os.path.splitext(video_path)[0]
+    if output_path is None:
+        output_path = f"{base}_audio.wav"
+
+    # Check if WAV already exists (pre-extracted or from test data generator)
+    if os.path.exists(output_path):
+        logger.info(f"Using existing audio file: {output_path}")
+        return output_path
+
+    # Try ffmpeg
+    if shutil.which("ffmpeg"):
+        cmd = [
+            "ffmpeg",
+            "-i", video_path,
+            "-vn",                    # no video
+            "-acodec", "pcm_s16le",   # 16-bit PCM
+            "-ar", str(sample_rate),  # resample to target rate
+            "-ac", "1",               # mono
+            "-y",                     # overwrite if exists
+            output_path
+        ]
+
+        logger.info(f"Extracting audio with ffmpeg: {video_path} -> {output_path}")
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            raise RuntimeError(f"ffmpeg failed: {result.stderr[:500]}")
+
+        file_size = os.path.getsize(output_path)
+        logger.info(f"Audio extracted: {output_path} ({file_size} bytes)")
+        return output_path
+
+    # No ffmpeg — look for any WAV file with matching base name
+    for suffix in ["_audio.wav", ".wav"]:
+        candidate = base + suffix
+        if os.path.exists(candidate):
+            logger.info(f"ffmpeg not found. Using existing WAV: {candidate}")
+            return candidate
+
+    raise RuntimeError(
+        f"Cannot extract audio: ffmpeg not installed and no pre-extracted WAV found. "
+        f"Install ffmpeg ('apt install ffmpeg') or place a WAV file at {output_path}"
+    )
+
+
+def load_wav_as_float(wav_path: str) -> tuple:
+    """
+    Load WAV file and return (waveform, sample_rate).
+
+    Waveform is float32 in [-1.0, 1.0] range — required by YAMNet.
+    Handles int16 and float32 WAV formats.
+
+    Returns:
+        (waveform: np.ndarray[float32], sample_rate: int)
+    """
+    import scipy.io.wavfile as wavfile
+
+    sample_rate, audio_data = wavfile.read(wav_path)
+
+    # Convert to float32 [-1.0, 1.0]
+    if audio_data.dtype == np.int16:
+        waveform = audio_data.astype(np.float32) / 32768.0
+    elif audio_data.dtype == np.float32:
+        waveform = audio_data
+    else:
+        waveform = audio_data.astype(np.float32) / np.iinfo(audio_data.dtype).max
+
+    # If stereo, take first channel
+    if waveform.ndim > 1:
+        waveform = waveform[:, 0]
+
+    logger.info(f"Loaded WAV: {len(waveform)/sample_rate:.1f}s, {sample_rate}Hz, "
+                f"range=[{waveform.min():.3f}, {waveform.max():.3f}]")
+    return waveform, sample_rate

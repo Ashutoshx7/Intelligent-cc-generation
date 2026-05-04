@@ -1,0 +1,35 @@
+audio:
+  backend: "yamnet"
+  sample_rate: 16000
+  confidence_threshold: 0.3
+  speech_class_indices: [0,1,2,3,4,5,6]
+  vad_aggressiveness: 3          # 0-3, higher = more aggressive. Use 3 for Hindi.
+  merge_gap_seconds: 0.1         # merge events within this gap
+
+visual:
+  reaction_window_start: 0.3     # seconds after event onset
+  reaction_window_end: 1.5       # seconds after event onset
+  num_reaction_frames: 5         # frames to sample in reaction window
+  pose_model_complexity: 1       # 0=lite, 1=full, 2=heavy
+  max_num_poses: 4               # multi-person detection
+  max_num_faces: 4
+  min_detection_confidence: 0.5
+  flinch_threshold: 0.05         # shoulder Y-diff to count as flinch
+  flinch_ceiling: 0.15           # normalize to 1.0 at this value
+  head_turn_threshold: 0.15      # nose-ratio deviation to count
+  head_turn_ceiling: 0.35
+  mouth_open_threshold: 0.02     # normalized lip gap
+  mouth_open_ceiling: 0.08
+  scene_cut_threshold: 0.4       # Bhattacharyya distance
+  scene_cut_tolerance: 0.5       # seconds around cut to flag
+
+fusion:
+  audio_weight: 0.6              # default alpha (overridden per-category)
+  visual_weight: 0.4             # default beta
+  threshold: 0.4                 # default combined score cutoff
+  speech_pause_bonus: 0.15
+
+output:
+  format: "srt"
+  max_cc_duration: 3.0           # seconds — subtitle standard
+  encoding: "utf-8"

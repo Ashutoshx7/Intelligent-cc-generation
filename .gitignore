@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test/build artifacts
+.pytest_cache/
+*.wav
+*.avi
+*.mp4
+*.mkv
+
+# Models (large files — download via setup script)
+models/*.task
+
+# Temp
+get-pip.py
