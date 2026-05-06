@@ -304,3 +304,157 @@ class TestEvaluator:
             {"start_time": 1, "end_time": 3}
         )
         assert abs(iou - 1/3) < 0.01  # overlap=1, union=3
+
+
+# ============================================================
+# Report Generator Tests
+# ============================================================
+
+class TestReportGenerator:
+    def _sample_events(self):
+        accepted = [
+            {"id": 1, "label": "Gunshot, gunfire", "cc_text": "[gunshot]",
+             "start_time": 5.0, "end_time": 5.5, "confidence": 0.85,
+             "reaction_score": 0.3, "combined_score": 0.75, "category": "high_impact",
+             "on_scene_cut": False, "speech_paused": False, "accepted": True},
+        ]
+        all_events = accepted + [
+            {"id": 2, "label": "Rain", "cc_text": "[rain]",
+             "start_time": 10.0, "end_time": 12.0, "confidence": 0.4,
+             "reaction_score": 0.0, "combined_score": 0.1, "category": "ambient",
+             "on_scene_cut": False, "speech_paused": False, "accepted": False},
+        ]
+        return accepted, all_events
+
+    def test_json_report_structure(self):
+        import json
+        from src.output.report_generator import write_json_report
+
+        accepted, all_events = self._sample_events()
+        with tempfile.NamedTemporaryFile(suffix=".srt", delete=False) as f:
+            path = f.name
+
+        json_path = write_json_report(accepted, all_events, path,
+                                       video_path="test.mp4", duration=15.0)
+        with open(json_path) as f:
+            data = json.load(f)
+
+        assert data["summary"]["total_detected"] == 2
+        assert data["summary"]["accepted"] == 1
+        assert data["summary"]["rejected"] == 1
+        assert len(data["accepted_events"]) == 1
+        assert len(data["rejected_events"]) == 1
+        assert data["accepted_events"][0]["cc_text"] == "[gunshot]"
+        assert data["duration_seconds"] == 15.0
+        os.remove(json_path)
+        os.remove(path)
+
+    def test_html_report_contains_key_elements(self):
+        from src.output.report_generator import write_html_report
+
+        accepted, all_events = self._sample_events()
+        with tempfile.NamedTemporaryFile(suffix=".srt", delete=False) as f:
+            path = f.name
+
+        html_path = write_html_report(accepted, all_events, path,
+                                       video_path="test.mp4", duration=15.0)
+        with open(html_path) as f:
+            html = f.read()
+
+        assert "CC Suggestion Report" in html
+        assert "Detected" in html
+        assert "Accepted" in html
+        assert "Filtered" in html
+        assert "[gunshot]" in html
+        assert "high_impact" in html
+        assert "✓ ACCEPT" in html
+        assert "✗ REJECT" in html
+        os.remove(html_path)
+        os.remove(path)
+
+    def test_json_filter_rate(self):
+        import json
+        from src.output.report_generator import write_json_report
+
+        accepted, all_events = self._sample_events()
+        with tempfile.NamedTemporaryFile(suffix=".srt", delete=False) as f:
+            path = f.name
+
+        json_path = write_json_report(accepted, all_events, path)
+        with open(json_path) as f:
+            data = json.load(f)
+
+        assert data["summary"]["filter_rate"] == 0.5  # 1 rejected out of 2
+        os.remove(json_path)
+        os.remove(path)
+
+
+# ============================================================
+# Extended Label Mapper Tests
+# ============================================================
+
+class TestExtendedLabels:
+    def test_india_specific_labels(self):
+        from src.output.label_mapper import map_label
+        assert map_label("Drum") == "[drums]"
+        assert map_label("Fireworks") == "[firecrackers]"
+        assert map_label("Bell") == "[bell]"
+        assert map_label("Gong") == "[gong]"
+        assert map_label("Flute") == "[flute]"
+        assert map_label("Tabla") == "[tabla]"
+
+    def test_high_impact_labels(self):
+        from src.output.label_mapper import map_label
+        assert map_label("Gunshot, gunfire") == "[gunshot]"
+        assert map_label("Siren") == "[siren]"
+        assert map_label("Ambulance (siren)") == "[ambulance siren]"
+        assert map_label("Smoke detector, smoke alarm") == "[smoke alarm]"
+        assert map_label("Thunder") == "[thunder]"
+
+    def test_social_labels(self):
+        from src.output.label_mapper import map_label
+        assert map_label("Laughter") == "[laughter]"
+        assert map_label("Baby cry, infant cry") == "[baby crying]"
+        assert map_label("Applause") == "[applause]"
+        assert map_label("Sneeze") == "[sneezing]"
+
+    def test_transport_labels(self):
+        from src.output.label_mapper import map_label
+        assert map_label("Helicopter") == "[helicopter]"
+        assert map_label("Motorcycle") == "[motorcycle]"
+        assert map_label("Train horn") == "[train horn]"
+
+    def test_nature_labels(self):
+        from src.output.label_mapper import map_label
+        assert map_label("Rain") == "[rain]"
+        assert map_label("Wind") == "[wind]"
+        assert map_label("Waterfall") == "[waterfall]"
+
+
+# ============================================================
+# Energy VAD Tests
+# ============================================================
+
+class TestEnergyVAD:
+    def test_energy_thresholds_by_aggressiveness(self):
+        from src.audio.speech_filter import SpeechFilter
+        sf0 = SpeechFilter(aggressiveness=0)
+        sf3 = SpeechFilter(aggressiveness=3)
+        # Higher aggressiveness = lower threshold
+        assert sf0._energy_threshold > sf3._energy_threshold
+
+    def test_silent_audio_no_speech(self):
+        from src.audio.speech_filter import SpeechFilter
+        sf = SpeechFilter(aggressiveness=3)
+        silent = np.zeros(16000)  # 1s of silence
+        segments = sf.get_speech_segments(silent)
+        assert len(segments) == 0
+
+    def test_loud_audio_has_speech(self):
+        from src.audio.speech_filter import SpeechFilter
+        sf = SpeechFilter(aggressiveness=3)
+        # Generate a loud signal
+        loud = np.ones(16000) * 0.5  # clearly above any threshold
+        segments = sf.get_speech_segments(loud)
+        assert len(segments) > 0
+

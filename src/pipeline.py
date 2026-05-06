@@ -15,6 +15,7 @@ from src.fusion.category_mapper import CategoryMapper
 from src.fusion.decision_engine import DecisionEngine
 from src.output.label_mapper import map_label
 from src.output.srt_writer import write_srt, write_summary
+from src.output.report_generator import write_json_report, write_html_report
 
 logger = logging.getLogger(__name__)
 
@@ -178,9 +179,13 @@ def run_pipeline(video_path: str, output_path: str,
     for event in accepted:
         event["cc_text"] = map_label(event["label"])
 
-    # Step 3.3: Write SRT output
+    # Step 3.3: Write all output formats
     write_srt(accepted, output_path, config['output']['encoding'])
     write_summary(accepted, all_events_copy, output_path)
+    write_json_report(accepted, all_events_copy, output_path,
+                      video_path=video_path, duration=audio_duration)
+    write_html_report(accepted, all_events_copy, output_path,
+                      video_path=video_path, duration=audio_duration)
 
     # Cleanup temp audio file (only if we created it, not pre-existing)
     if not wav_preexisted and os.path.exists(wav_path) and wav_path.endswith("_audio.wav"):
@@ -195,5 +200,13 @@ def run_pipeline(video_path: str, output_path: str,
     logger.info(f"  Duration:  {audio_duration:.1f}s")
     logger.info(f"  Events:    {len(all_events_copy)} detected -> {len(accepted)} accepted")
     logger.info(f"  Output:    {output_path}")
+    logger.info(f"  Reports:   {output_path.replace('.srt', '_report.json')}, {output_path.replace('.srt', '_report.html')}")
     logger.info(f"  Time:      {elapsed:.1f}s ({elapsed/audio_duration:.1f}x realtime)")
     logger.info("=" * 60)
+
+    return {
+        "accepted": accepted,
+        "all_events": all_events_copy,
+        "duration": audio_duration,
+        "elapsed": elapsed,
+    }

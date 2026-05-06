@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CC Report — demo_clip.avi</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: #0a0a0a; color: #e0e0e0; padding: 40px; line-height: 1.6; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        h1 { font-size: 24px; font-weight: 300; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .subtitle { color: #666; font-size: 13px; margin-bottom: 40px; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #222; border: 1px solid #222; margin-bottom: 40px; }
+        .stat { background: #0a0a0a; padding: 24px; text-align: center; }
+        .stat-value { font-size: 36px; font-weight: 200; font-family: 'JetBrains Mono', monospace; }
+        .stat-value.green { color: #4ade80; }
+        .stat-value.red { color: #f87171; }
+        .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-top: 4px; }
+        h2 { font-size: 16px; font-weight: 400; margin: 32px 0 16px; text-transform: uppercase; letter-spacing: 1px; color: #888; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; padding: 12px 16px; border-bottom: 1px solid #333; color: #888; font-weight: 400; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; }
+        td { padding: 10px 16px; border-bottom: 1px solid #1a1a1a; }
+        tr.accepted { background: rgba(74, 222, 128, 0.03); }
+        tr.rejected { opacity: 0.5; }
+        .status-accepted { color: #4ade80; font-weight: 600; }
+        .status-rejected { color: #666; }
+        .cat-row { display: flex; align-items: center; margin-bottom: 8px; }
+        .cat-name { width: 100px; font-size: 12px; color: #888; }
+        .cat-bar-bg { flex: 1; height: 24px; background: #1a1a1a; border-radius: 4px; overflow: hidden; margin: 0 12px; }
+        .cat-bar { height: 100%; background: #333; display: flex; align-items: center; padding-left: 8px; font-size: 11px; color: #aaa; border-radius: 4px; }
+        .cat-rate { font-size: 12px; color: #666; width: 100px; text-align: right; }
+        .srt-preview { background: #111; border: 1px solid #222; padding: 20px; font-family: 'JetBrains Mono', monospace; font-size: 13px; white-space: pre; overflow-x: auto; line-height: 1.8; }
+        .footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #1a1a1a; font-size: 11px; color: #444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CC Suggestion Report</h1>
+        <p class="subtitle">demo_clip.avi · 15.0s · Generated 2026-05-06 06:21</p>
+
+        <div class="stats">
+            <div class="stat"><div class="stat-value">15</div><div class="stat-label">Detected</div></div>
+            <div class="stat"><div class="stat-value green">6</div><div class="stat-label">Accepted</div></div>
+            <div class="stat"><div class="stat-value red">9</div><div class="stat-label">Filtered</div></div>
+            <div class="stat"><div class="stat-value">60%</div><div class="stat-label">Filter Rate</div></div>
+        </div>
+
+        <h2>Category Distribution</h2>
+        
+        <div class="cat-row">
+            <span class="cat-name">default</span>
+            <div class="cat-bar-bg">
+                <div class="cat-bar" style="width: 100%">15 detected</div>
+            </div>
+            <span class="cat-rate">40% accepted</span>
+        </div>
+
+        <h2>Event Details</h2>
+        <table>
+            <thead>
+                <tr><th>Start</th><th>End</th><th>Label</th><th>Category</th><th>Audio</th><th>Visual</th><th>Combined</th><th>Flags</th><th>Decision</th></tr>
+            </thead>
+            <tbody>
+                
+        <tr class="rejected">
+            <td>00:00:00,000</td>
+            <td>00:00:00,480</td>
+            <td><strong>[White noise]</strong><br><small>White noise</small></td>
+            <td>default</td>
+            <td>0.61</td>
+            <td>0.00</td>
+            <td>0.00</td>
+            <td></td>
+            <td class="status-rejected">✗ REJECT</td>
+        </tr>
+        <tr class="rejected">
+            <td>00:00:00,480</td>
+            <td>00:00:00,960</td>
+            <td><strong>[Noise]</strong><br><small>Noise</small></td>
+            <td>default</td>
+            <td>0.67</td>
+            <td>0.00</td>
+            <td>0.00</td>
+            <td></td>
+            <td class="status-rejected">✗ REJECT</td>
+        </tr>
+        <tr class="rejected">
+            <td>00:00:00,960</td>
+            <td>00:00:01,440</td>
+            <td><strong>[Pink noise]</strong><br><small>Pink noise</small></td>
+            <td>default</td>
+            <td>0.68</td>
+            <td>0.00</td>
+            <td>0.00</td>
+            <td></td>
+            <td class="status-rejected">✗ REJECT</td>
+        </tr>
+        <tr class="rejected">
+            <td>00:00:01,440</td>
+            <td>00:00:02,400</td>
+            <td><strong>[Synthesizer]</strong><br><small>Synthesizer</small></td>
+            <td>default</td>
+            <td>0.70</td>
+            <td>0.00</td>
+            <td>0.00</td>
+            <td></td>
+            <td class="status-rejected">✗ REJECT</td>
+        </tr>
+        <tr class="accepted">
+            <td>00:00:03,840</td>
+            <td>00:00:04,800</td>
+            <td><strong>[Rustle]</strong><br><small>Rustle</small></td>
+            <td>default</td>
+            <td>0.60</td>
+            <td>0.00</td>
+            <td>0.00</td>
+            <td>🗣 pause</td>
+            <td class="status-accepted">✓ ACCEPT</td>
+        </tr>
+        <tr class="rejected">
+            <td>00:00:04,800</td>
+            <td>00:00:05,760</td>
+            <td><strong>[Beep, bleep]</strong><br><small>Beep, bleep</small></td>
+            <td>default</td>
+            <td>0.74</td>
+            <td>0.00</td>
+            <td>0.00</td>
+            <td></td>
+            <td class="status-rejected">✗ REJECT</td>
+        </tr>
+        <tr class="accepted">
+            <td>00:00:06,240</td>
+            <td>00:00:06,720</td>
+            <td><strong>[Beep, bleep]</strong><br><small>Beep, bleep</small></td>
+            <td>default</td>
+            <td>0.57</td>
+            <td>0.00</td>
+            <td>0.00</td>
+            <td>🗣 pause</td>
+            <td class="status-accepted">✓ ACCEPT</td>
+        </tr>
+        <tr class="accepted">
+            <td>00:00:06,720</td>
+            <td>00:00:07,680</td>
+            <td><strong>[Pink noise]</strong><br><small>Pink noise</small></td>
+            <td>default</td>
+            <td>0.71</td>
+            <td>0.00</td>
+            <td>0.00</td>
+            <td>🗣 pause</td>
+            <td class="status-accepted">✓ ACCEPT</td>
+        </tr>
+        <tr class="accepted">
+            <td>00:00:07,680</td>
+            <td>00:00:08,160</td>
+            <td><strong>[Beep, bleep]</strong><br><small>Beep, bleep</small></td>
+            <td>default</td>
+            <td>0.87</td>
+            <td>0.00</td>
+            <td>0.00</td>
+            <td></td>
+            <td class="status-accepted">✓ ACCEPT</td>
+        </tr>
+        <tr class="accepted">
+            <td>00:00:09,600</td>
+            <td>00:00:10,080</td>
+            <td><strong>[Rustle]</strong><br><small>Rustle</small></td>
+            <td>default</td>
+            <td>0.64</td>
+            <td>0.00</td>
+            <td>0.00</td>
+            <td>🗣 pause</td>
+            <td class="status-accepted">✓ ACCEPT</td>
+        </tr>
+        <tr class="rejected">
+            <td>00:00:10,080</td>
+            <td>00:00:10,560</td>
+            <td><strong>[White noise]</strong><br><small>White noise</small></td>
+            <td>default</td>
+            <td>0.64</td>
+            <td>0.00</td>
+            <td>0.00</td>
+            <td>🗣 pause</td>
+            <td class="status-rejected">✗ REJECT</td>
+        </tr>
+        <tr class="rejected">
+            <td>00:00:10,560</td>
+            <td>00:00:11,040</td>
+            <td><strong>[Pink noise]</strong><br><small>Pink noise</small></td>
+            <td>default</td>
+            <td>0.54</td>
+            <td>0.00</td>
+            <td>0.00</td>
+            <td></td>
+            <td class="status-rejected">✗ REJECT</td>
+        </tr>
+        <tr class="rejected">
+            <td>00:00:11,520</td>
+            <td>00:00:12,000</td>
+            <td><strong>[Music]</strong><br><small>Music</small></td>
+            <td>default</td>
+            <td>0.90</td>
+            <td>0.00</td>
+            <td>0.00</td>
+            <td></td>
+            <td class="status-rejected">✗ REJECT</td>
+        </tr>
+        <tr class="rejected">
+            <td>00:00:12,480</td>
+            <td>00:00:12,960</td>
+            <td><strong>[Noise]</strong><br><small>Noise</small></td>
+            <td>default</td>
+            <td>0.62</td>
+            <td>0.00</td>
+            <td>0.00</td>
+            <td>🗣 pause</td>
+            <td class="status-rejected">✗ REJECT</td>
+        </tr>
+        <tr class="accepted">
+            <td>00:00:12,960</td>
+            <td>00:00:14,880</td>
+            <td><strong>[Pink noise]</strong><br><small>Pink noise</small></td>
+            <td>default</td>
+            <td>0.70</td>
+            <td>0.00</td>
+            <td>0.00</td>
+            <td>🗣 pause</td>
+            <td class="status-accepted">✓ ACCEPT</td>
+        </tr>
+            </tbody>
+        </table>
+
+        <h2>SRT Preview</h2>
+        <div class="srt-preview">1
+00:00:03,840 --> 00:00:04,800
+[rustle]
+
+2
+00:00:06,240 --> 00:00:06,720
+[beep]
+
+3
+00:00:06,720 --> 00:00:07,680
+[pink]
+
+4
+00:00:07,680 --> 00:00:08,160
+[beep]
+
+5
+00:00:09,600 --> 00:00:10,080
+[rustle]
+
+6
+00:00:12,960 --> 00:00:14,880
+[pink]
+
+</div>
+
+        <div class="footer">
+            Intelligent CC Suggestion Tool · DMP 2026 · PlanetRead · C4GT
+        </div>
+    </div>
+</body>
+</html>
