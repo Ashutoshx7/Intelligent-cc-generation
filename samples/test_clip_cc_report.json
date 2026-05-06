@@ -1,0 +1,150 @@
+{
+  "tool": "Intelligent CC Suggestion Tool",
+  "version": "1.0.0",
+  "generated": "2026-05-06T07:44:29.385577",
+  "video": "samples/test_clip.avi",
+  "duration_seconds": 10.0,
+  "summary": {
+    "total_detected": 11,
+    "accepted": 3,
+    "rejected": 8,
+    "filter_rate": 0.727
+  },
+  "accepted_events": [
+    {
+      "id": 3,
+      "label": "Synthesizer",
+      "cc_text": "[synthesizer]",
+      "start_time": 1.44,
+      "end_time": 1.92,
+      "start_srt": "00:00:01,440",
+      "end_srt": "00:00:01,920",
+      "audio_confidence": 0.899,
+      "visual_reaction": 0.0,
+      "combined_score": 0.5394,
+      "category": "default",
+      "on_scene_cut": false,
+      "speech_paused": false
+    },
+    {
+      "id": 10,
+      "label": "Busy signal",
+      "cc_text": "[busy]",
+      "start_time": 5.76,
+      "end_time": 6.24,
+      "start_srt": "00:00:05,760",
+      "end_srt": "00:00:06,240",
+      "audio_confidence": 0.8055,
+      "visual_reaction": 0.0,
+      "combined_score": 0.9555,
+      "category": "default",
+      "on_scene_cut": true,
+      "speech_paused": true
+    },
+    {
+      "id": 14,
+      "label": "Pink noise",
+      "cc_text": "[pink]",
+      "start_time": 8.16,
+      "end_time": 8.64,
+      "start_srt": "00:00:08,160",
+      "end_srt": "00:00:08,640",
+      "audio_confidence": 0.5109,
+      "visual_reaction": 0.0,
+      "combined_score": 0.4565,
+      "category": "default",
+      "on_scene_cut": false,
+      "speech_paused": true
+    }
+  ],
+  "rejected_events": [
+    {
+      "id": 1,
+      "label": "Pink noise",
+      "start_time": 0.0,
+      "end_time": 0.48,
+      "audio_confidence": 0.5203,
+      "visual_reaction": 0.0,
+      "combined_score": 0,
+      "category": "default",
+      "reason": "No visible reaction to support audio signal (0.52)"
+    },
+    {
+      "id": 2,
+      "label": "Rustle",
+      "start_time": 0.48,
+      "end_time": 1.44,
+      "audio_confidence": 0.4939,
+      "visual_reaction": 0.0,
+      "combined_score": 0,
+      "category": "default",
+      "reason": "Low confidence (0.49) and no visual reaction"
+    },
+    {
+      "id": 6,
+      "label": "White noise",
+      "start_time": 3.36,
+      "end_time": 3.84,
+      "audio_confidence": 0.7085,
+      "visual_reaction": 0.0,
+      "combined_score": 0,
+      "category": "default",
+      "reason": "No visible reaction to support audio signal (0.71)"
+    },
+    {
+      "id": 7,
+      "label": "Spray",
+      "start_time": 3.84,
+      "end_time": 4.32,
+      "audio_confidence": 0.3805,
+      "visual_reaction": 0.0,
+      "combined_score": 0,
+      "category": "default",
+      "reason": "Low confidence (0.38) and no visual reaction"
+    },
+    {
+      "id": 8,
+      "label": "Telephone",
+      "start_time": 4.32,
+      "end_time": 5.28,
+      "audio_confidence": 0.9963,
+      "visual_reaction": 0.0,
+      "combined_score": 0,
+      "category": "default",
+      "reason": "No visible reaction to support audio signal (1.00)"
+    },
+    {
+      "id": 9,
+      "label": "White noise",
+      "start_time": 5.28,
+      "end_time": 5.76,
+      "audio_confidence": 0.5164,
+      "visual_reaction": 0.0,
+      "combined_score": 0,
+      "category": "default",
+      "reason": "No visible reaction to support audio signal (0.52)"
+    },
+    {
+      "id": 13,
+      "label": "Rustle",
+      "start_time": 7.68,
+      "end_time": 8.16,
+      "audio_confidence": 0.445,
+      "visual_reaction": 0.0,
+      "combined_score": 0,
+      "category": "default",
+      "reason": "Low confidence (0.45) and no visual reaction"
+    },
+    {
+      "id": 15,
+      "label": "White noise",
+      "start_time": 8.64,
+      "end_time": 9.6,
+      "audio_confidence": 0.5507,
+      "visual_reaction": 0.0,
+      "combined_score": 0,
+      "category": "default",
+      "reason": "No visible reaction to support audio signal (0.55)"
+    }
+  ]
+}
