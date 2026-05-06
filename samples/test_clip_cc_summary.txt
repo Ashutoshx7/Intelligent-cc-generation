@@ -1,21 +1,20 @@
 CC Suggestion Summary
 ============================================================
 
-Total audio events detected: 4
-Events accepted for CC:      3
-Events rejected:             1
+Total audio events detected: 5
+Events accepted for CC:      1
+Events rejected:             4
 
-Overcaption prevention: 1 ambient/insignificant sounds filtered out
+Overcaption prevention: 4 ambient/insignificant sounds filtered out
 
 ACCEPTED CCs:
 ------------------------------------------------------------
-  00:00:05,280 -> 00:00:05,760  [pink]                (audio=0.67 visual=0.00 combined=0.82 [default])
-  00:00:05,760 -> 00:00:06,240  [busy]                (audio=0.89 visual=0.00 combined=1.00 [default])
-  00:00:07,680 -> 00:00:09,120  [pink]                (audio=0.62 visual=0.00 combined=0.52 [default])
+  00:00:05,760 -> 00:00:06,240  [busy]                (audio=0.81 visual=0.00 combined=0.96 [default])
 
 REJECTED EVENTS:
 ------------------------------------------------------------
-  00:00:00,000 -> 00:00:01,440  White noise                     (audio=0.66 visual=0.00 combined=0.00 [?]) -> REJECTED
-  00:00:05,280 -> 00:00:05,760  Pink noise                      (audio=0.67 visual=0.00 combined=0.00 [?]) -> REJECTED
-  00:00:05,760 -> 00:00:06,240  Busy signal                     (audio=0.89 visual=0.00 combined=0.00 [?]) -> REJECTED
-  00:00:07,680 -> 00:00:09,120  Pink noise                      (audio=0.62 visual=0.00 combined=0.00 [?]) -> REJECTED
+  00:00:03,360 -> 00:00:03,840  White noise                     (audio=0.71 visual=0.00 combined=0.00 [?]) -> REJECTED
+  00:00:03,840 -> 00:00:04,320  Spray                           (audio=0.38 visual=0.00 combined=0.00 [?]) -> REJECTED
+  00:00:05,760 -> 00:00:06,240  Busy signal                     (audio=0.81 visual=0.00 combined=0.00 [?]) -> REJECTED
+  00:00:07,680 -> 00:00:08,160  Rustle                          (audio=0.45 visual=0.00 combined=0.00 [?]) -> REJECTED
+  00:00:08,640 -> 00:00:09,600  White noise                     (audio=0.55 visual=0.00 combined=0.00 [?]) -> REJECTED

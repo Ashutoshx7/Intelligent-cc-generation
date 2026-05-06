@@ -54,6 +54,9 @@ def run_pipeline(video_path: str, output_path: str,
     logger.info("=" * 60)
 
     # Step 1.1: Extract audio
+    base = os.path.splitext(video_path)[0]
+    expected_wav = f"{base}_audio.wav"
+    wav_preexisted = os.path.exists(expected_wav)
     wav_path = extract_audio(video_path, sample_rate=config['audio']['sample_rate'])
     waveform, sr = load_wav_as_float(wav_path)
     audio_duration = len(waveform) / sr
@@ -179,8 +182,8 @@ def run_pipeline(video_path: str, output_path: str,
     write_srt(accepted, output_path, config['output']['encoding'])
     write_summary(accepted, all_events_copy, output_path)
 
-    # Cleanup temp audio file
-    if os.path.exists(wav_path) and wav_path.endswith("_audio.wav"):
+    # Cleanup temp audio file (only if we created it, not pre-existing)
+    if not wav_preexisted and os.path.exists(wav_path) and wav_path.endswith("_audio.wav"):
         os.remove(wav_path)
         logger.debug(f"Cleaned up temp audio: {wav_path}")
 

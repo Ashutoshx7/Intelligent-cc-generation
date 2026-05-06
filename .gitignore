@@ -25,13 +25,16 @@ Thumbs.db
 
 # Test/build artifacts
 .pytest_cache/
+
+# Generated audio/video (not source test clips)
 *.wav
-*.avi
-*.mp4
 *.mkv
 
 # Models (large files — download via setup script)
 models/*.task
+
+# Web UI uploads (user data)
+web/uploads/
 
 # Temp
 get-pip.py
