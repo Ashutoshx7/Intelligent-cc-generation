@@ -43,9 +43,12 @@ class SpeechFilter:
         else:
             self.vad = None
             # Energy threshold for speech — tuned per aggressiveness
-            # Higher aggressiveness = lower threshold = more frames marked as speech
-            self._energy_thresholds = {0: 0.02, 1: 0.015, 2: 0.01, 3: 0.005}
-            self._energy_threshold = self._energy_thresholds.get(aggressiveness, 0.01)
+            # These thresholds are set to distinguish speech energy from
+            # non-speech sounds. Speech has sustained medium energy; sounds
+            # like sirens/alarms have different spectral characteristics but
+            # similar RMS — so we keep thresholds moderate.
+            self._energy_thresholds = {0: 0.04, 1: 0.03, 2: 0.02, 3: 0.015}
+            self._energy_threshold = self._energy_thresholds.get(aggressiveness, 0.02)
             logger.info(f"Using energy-based VAD (threshold={self._energy_threshold})")
 
     def get_speech_segments(self, waveform: np.ndarray) -> list:
