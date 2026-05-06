@@ -181,6 +181,24 @@ python main.py samples/test_clip.avi --evaluate --ground-truth eval/ground_truth
 - **India-specific sounds** — Fireworks→[firecrackers], Drum→[drums], Bell→[bell]
 - **SLS workflow compatible** — Standard SRT format overlays with karaoke subtitles
 
+## Known Limitations
+
+1. **YAMNet is AudioSet-trained (English/Western-centric)** — Indian-specific sounds (dhol, pressure cooker whistle, temple bells) may classify under generic labels. Mitigation: substring-based label mapper handles this, and PANNs can be swapped in via the fixed data contract.
+2. **Single-frame vs. multi-frame tradeoff** — We extract 5 frames in the reaction window (300–1500ms). For very fast reactions (<300ms) or slow dramatic reactions (>1500ms), the window may miss. The window is configurable in `default.yaml`.
+3. **No GPU required but slower on CPU** — YAMNet + MediaPipe run on CPU. A 10s video processes in ~4s. Longer videos scale linearly.
+4. **ffmpeg preferred for audio** — Without ffmpeg, the OpenCV fallback creates a silent WAV (visual-only analysis). Install ffmpeg for full audio+visual pipeline.
+5. **WebRTC VAD may not install on all platforms** — Falls back to energy-based VAD automatically, which is less accurate for dense Hindi dialogue.
+6. **Confidence calibration** — YAMNet softmax scores are not true probabilities. Per-class calibration on representative Hindi content would improve threshold accuracy.
+
+## What I'd Improve Next
+
+1. **Benchmark on real PlanetRead content** — Tune thresholds and category weights on actual Hindi/regional videos with editor feedback
+2. **PANNs backend** — Swap in PANNs for finer-grained classification (the data contract makes this a drop-in)
+3. **Confidence calibration** — Per-class percentile normalization on a representative sample
+4. **Persistent job storage** — Move from in-memory to SQLite/Redis for multi-user web deployment
+5. **VTT output format** — Trivially derivable from SRT, not yet implemented
+6. **Threshold tuning UI** — Expose category weights in the web interface for real-time editor adjustment
+
 ## License
 
 MIT
