@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent CC Tool — PlanetRead</title>
+    <meta name="description" content="AI-powered closed caption suggestion tool. Detects non-speech sounds and suggests contextually meaningful CCs.">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>CC</text></svg>">
+</head>
+<body>
+    <div class="ambient-bg"></div>
+
+    <div class="app-container">
+        <header class="header">
+            <div class="header-brand">
+                <div class="header-icon">CC</div>
+                <div>
+                    <div class="header-title">Intelligent CC Tool</div>
+                    <div class="header-subtitle">PlanetRead · DMP 2026</div>
+                </div>
+            </div>
+            <div class="header-badge" id="status-badge">Ready</div>
+        </header>
+
+        <!-- Upload -->
+        <section class="section active" id="section-upload">
+            <div class="upload-hero">
+                <h1>Closed Caption<br>Suggestions</h1>
+                <p>Upload a video. The AI detects meaningful non-speech sounds, checks if anyone on screen reacts, and suggests only the captions that matter.</p>
+
+                <div class="upload-zone" id="upload-zone">
+                    <div class="upload-zone-icon">↑</div>
+                    <h3>Drop a video file here</h3>
+                    <p>MP4, MKV, AVI, MOV, or WebM</p>
+                    <input type="file" id="file-input" accept="video/*">
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">◎</div>
+                        <h4>Sound Detection</h4>
+                        <p>YAMNet classifies 521 audio event types with speech filtering</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">◉</div>
+                        <h4>Reaction Analysis</h4>
+                        <p>MediaPipe tracks faces and poses 300–1500ms after each sound</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⊕</div>
+                        <h4>Smart Fusion</h4>
+                        <p>Category-aware weights ensure only significant sounds are captioned</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Processing -->
+        <section class="section" id="section-processing">
+            <div class="processing-card">
+                <div class="processing-spinner"></div>
+                <div class="processing-percent" id="progress-percent">0%</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <div class="processing-stage" id="progress-stage">Initializing…</div>
+            </div>
+        </section>
+
+        <!-- Results -->
+        <section class="section" id="section-results">
+            <div class="results-header">
+                <h2>Suggestions</h2>
+                <div class="results-actions">
+                    <button class="btn" id="btn-new" onclick="resetApp()">← New</button>
+                    <button class="btn btn-primary" id="btn-export" onclick="exportSRT()">↓ Download SRT</button>
+                </div>
+            </div>
+
+            <div class="stats-bar" id="stats-bar">
+                <div class="stat-card">
+                    <div class="stat-value total" id="stat-total">0</div>
+                    <div class="stat-label">Detected</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value accepted" id="stat-accepted">0</div>
+                    <div class="stat-label">Accepted</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value rejected" id="stat-rejected">0</div>
+                    <div class="stat-label">Filtered</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value rate" id="stat-rate">0%</div>
+                    <div class="stat-label">Filter Rate</div>
+                </div>
+            </div>
+
+            <div class="video-container">
+                <video id="video-player" controls></video>
+            </div>
+
+            <div class="timeline-container">
+                <div class="timeline-label">Timeline</div>
+                <div class="timeline-track" id="timeline-track">
+                    <div class="timeline-playhead" id="timeline-playhead"></div>
+                </div>
+            </div>
+
+            <div class="events-header">
+                <h3>Events</h3>
+                <div class="filter-tabs">
+                    <button class="filter-tab active" onclick="filterEvents('all', this)">All</button>
+                    <button class="filter-tab" onclick="filterEvents('accepted', this)">Accepted</button>
+                    <button class="filter-tab" onclick="filterEvents('rejected', this)">Rejected</button>
+                </div>
+            </div>
+
+            <div class="events-list" id="events-list"></div>
+
+            <div class="srt-preview">
+                <h3>⌘ SRT Output</h3>
+                <pre class="srt-content" id="srt-preview"></pre>
+            </div>
+        </section>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
