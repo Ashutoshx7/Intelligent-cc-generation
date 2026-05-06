@@ -1,27 +1,21 @@
 CC Suggestion Summary
 ============================================================
 
-Total audio events detected: 8
-Events accepted for CC:      5
-Events rejected:             3
+Total audio events detected: 4
+Events accepted for CC:      3
+Events rejected:             1
 
-Overcaption prevention: 3 ambient/insignificant sounds filtered out
+Overcaption prevention: 1 ambient/insignificant sounds filtered out
 
 ACCEPTED CCs:
 ------------------------------------------------------------
-  00:00:00,480 -> 00:00:00,960  [pink]                (audio=0.61 visual=0.00 combined=0.51 [default])
-  00:00:01,440 -> 00:00:01,920  [synthesizer]         (audio=0.73 visual=0.00 combined=0.59 [default])
-  00:00:03,360 -> 00:00:03,840  [rustle]              (audio=0.51 visual=0.00 combined=0.46 [default])
-  00:00:05,280 -> 00:00:05,760  [white]               (audio=0.63 visual=0.00 combined=0.78 [ambient])
-  00:00:05,760 -> 00:00:06,240  [busy]                (audio=0.94 visual=0.00 combined=1.00 [default])
+  00:00:05,280 -> 00:00:05,760  [pink]                (audio=0.67 visual=0.00 combined=0.82 [default])
+  00:00:05,760 -> 00:00:06,240  [busy]                (audio=0.89 visual=0.00 combined=1.00 [default])
+  00:00:07,680 -> 00:00:09,120  [pink]                (audio=0.62 visual=0.00 combined=0.52 [default])
 
 REJECTED EVENTS:
 ------------------------------------------------------------
-  00:00:00,000 -> 00:00:00,480  Noise                           (audio=0.67 visual=0.00 combined=0.00 [?]) -> REJECTED
-  00:00:00,480 -> 00:00:00,960  Pink noise                      (audio=0.61 visual=0.00 combined=0.00 [?]) -> REJECTED
-  00:00:00,960 -> 00:00:01,440  Noise                           (audio=0.61 visual=0.00 combined=0.00 [?]) -> REJECTED
-  00:00:01,440 -> 00:00:01,920  Synthesizer                     (audio=0.73 visual=0.00 combined=0.00 [?]) -> REJECTED
-  00:00:03,360 -> 00:00:03,840  Rustle                          (audio=0.51 visual=0.00 combined=0.00 [?]) -> REJECTED
-  00:00:05,280 -> 00:00:05,760  White noise                     (audio=0.63 visual=0.00 combined=0.00 [?]) -> REJECTED
-  00:00:05,760 -> 00:00:06,240  Busy signal                     (audio=0.94 visual=0.00 combined=0.00 [?]) -> REJECTED
-  00:00:09,120 -> 00:00:09,600  White noise                     (audio=0.57 visual=0.00 combined=0.00 [?]) -> REJECTED
+  00:00:00,000 -> 00:00:01,440  White noise                     (audio=0.66 visual=0.00 combined=0.00 [?]) -> REJECTED
+  00:00:05,280 -> 00:00:05,760  Pink noise                      (audio=0.67 visual=0.00 combined=0.00 [?]) -> REJECTED
+  00:00:05,760 -> 00:00:06,240  Busy signal                     (audio=0.89 visual=0.00 combined=0.00 [?]) -> REJECTED
+  00:00:07,680 -> 00:00:09,120  Pink noise                      (audio=0.62 visual=0.00 combined=0.00 [?]) -> REJECTED
