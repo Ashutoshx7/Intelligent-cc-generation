@@ -14,12 +14,12 @@ visual:
   max_num_poses: 4               # multi-person detection
   max_num_faces: 4
   min_detection_confidence: 0.5
-  flinch_threshold: 0.05         # shoulder Y-diff to count as flinch
-  flinch_ceiling: 0.15           # normalize to 1.0 at this value
-  head_turn_threshold: 0.15      # nose-ratio deviation to count
-  head_turn_ceiling: 0.35
-  mouth_open_threshold: 0.02     # normalized lip gap
-  mouth_open_ceiling: 0.08
+  flinch_threshold: 0.08         # shoulder Y-diff to count as flinch (raised from 0.05)
+  flinch_ceiling: 0.18           # normalize to 1.0 at this value
+  head_turn_threshold: 0.20      # nose-ratio deviation to count (raised from 0.15)
+  head_turn_ceiling: 0.40
+  mouth_open_threshold: 0.045    # normalized lip gap (raised from 0.02 — normal speech ~0.03)
+  mouth_open_ceiling: 0.10       # genuine gasp/shock
   scene_cut_threshold: 0.4       # Bhattacharyya distance
   scene_cut_tolerance: 0.5       # seconds around cut to flag
 

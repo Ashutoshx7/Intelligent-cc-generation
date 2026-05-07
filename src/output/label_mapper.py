@@ -168,9 +168,10 @@ def map_label(yamnet_class: str) -> str:
     if yamnet_class in LABEL_MAP:
         return LABEL_MAP[yamnet_class]
 
-    # Substring match (handles compound YAMNet labels)
+    # Substring match: only check if MAP KEY is substring of the YAMNet class
+    # NOT the reverse — prevents 'Fire' from matching 'Gunshot, gunfire'
     for key, label in LABEL_MAP.items():
-        if key.lower() in yamnet_class.lower() or yamnet_class.lower() in key.lower():
+        if key.lower() in yamnet_class.lower():
             return label
 
     # Fallback: first word, lowercase, in brackets
