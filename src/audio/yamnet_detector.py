@@ -63,24 +63,46 @@ class YAMNetDetector:
         logger.info(f"YAMNet produced {scores_np.shape[0]} frames "
                     f"({scores_np.shape[0] * self.hop_size:.1f}s of audio)")
 
+        # High-impact class indices for priority selection
+        high_impact_names = {
+            'Gunshot, gunfire', 'Explosion', 'Scream', 'Glass',
+            'Siren', 'Alarm', 'Thunder', 'Shatter', 'Machine gun',
+            'Firecracker', 'Fireworks', 'Cap gun', 'Battle cry',
+        }
+        high_impact_indices = {
+            i for i, name in enumerate(self.class_names)
+            if name in high_impact_names
+        }
+
         # Extract per-frame top class (skip speech + low confidence)
         raw_events = []
         for i, frame_scores in enumerate(scores_np):
-            top_class_idx = int(np.argmax(frame_scores))
-            confidence = float(frame_scores[top_class_idx])
+            # Get top 3 classes
+            top3_indices = np.argsort(frame_scores)[::-1][:3]
+
+            # Prefer high-impact class if it appears in top-3
+            # This catches gunshots YAMNet ranks 2nd or 3rd
+            chosen_idx = int(top3_indices[0])
+            chosen_conf = float(frame_scores[chosen_idx])
+
+            for idx in top3_indices:
+                if int(idx) in high_impact_indices and float(frame_scores[int(idx)]) >= 0.15:
+                    chosen_idx = int(idx)
+                    chosen_conf = float(frame_scores[chosen_idx])
+                    break
 
             # Skip speech classes (YAMNet indices 0-6)
-            if top_class_idx in self.speech_indices:
+            if chosen_idx in self.speech_indices:
                 continue
 
             # Skip low confidence
-            if confidence < self.confidence_threshold:
+            if chosen_conf < self.confidence_threshold:
                 continue
 
             raw_events.append({
-                "label": self.class_names[top_class_idx],
-                "class_index": top_class_idx,
-                "confidence": confidence,
+                "label": self.class_names[chosen_idx],
+                "class_index": chosen_idx,
+                "confidence": chosen_conf,
                 "start_time": round(i * self.hop_size, 3),
                 "end_time": round((i + 1) * self.hop_size, 3),
             })
