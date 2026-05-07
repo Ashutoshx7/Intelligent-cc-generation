@@ -64,8 +64,10 @@ The web interface provides:
 - **Upload** — Drag-and-drop video files
 - **Processing** — Real-time progress with pipeline stage updates
 - **Review** — Video player, interactive timeline, event cards with accept/reject toggles
-- **Export** — Download the final SRT file with only accepted captions
 - **Live CC Overlay** — Captions appear on the video player in real-time during playback, styled by category
+- **Caption Style Customizer** — Change font, size, color, position, and background opacity of captions in real-time
+- **Keyboard Shortcuts** — `Space` play/pause, `←→` seek ±5s, `J/K` jump between events
+- **Export** — Download SRT or SLS with only accepted captions
 
 ## Output
 
