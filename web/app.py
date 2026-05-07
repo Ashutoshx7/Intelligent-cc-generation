@@ -34,10 +34,16 @@ jobs = {}
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
-    """Serve the main UI (no-cache to prevent stale overlay bug)."""
+    """Serve the main UI with auto-cache-busting."""
+    import time
     html_path = STATIC_DIR / "index.html"
+    html = html_path.read_text()
+    # Auto cache-bust: replace ?v=X with current timestamp
+    cache_buster = str(int(time.time()))
+    html = html.replace('style.css?v=4', f'style.css?v={cache_buster}')
+    html = html.replace('app.js?v=4', f'app.js?v={cache_buster}')
     return HTMLResponse(
-        content=html_path.read_text(),
+        content=html,
         headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache"}
     )
 
