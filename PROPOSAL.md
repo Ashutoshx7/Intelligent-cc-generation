@@ -123,58 +123,57 @@ python3 -m pytest tests/test_all.py -v
 
 The system is organized as a strict three-goal pipeline matching the issue structure. Each goal is a self-contained module with a fixed data contract.
 
-```
-Video
-  │
-  ├── ffmpeg Audio Extraction (+ OpenCV silent-WAV fallback)
-  │
-  ▼
-┌────────────────────────────────────────────────────┐
-│  GOAL 1: Sound Event Detection   src/audio/        │
-│                                                    │
-│  YAMNet (521 AudioSet classes)                     │
-│  + WebRTC VAD speech filter (aggressiveness=3)     │
-│  + Energy-based VAD fallback (pure Python)         │
-│  + Consecutive event merging (peak confidence)     │
-└──────────────────────┬─────────────────────────────┘
-                       │  List[AudioEvent]
-                       ▼
-┌────────────────────────────────────────────────────┐
-│  GOAL 2: Visual Reaction Detection  src/visual/    │
-│                                                    │
-│  Scene cut detection (Bhattacharyya histogram)     │
-│  Temporal window: 300–1500ms after event onset     │
-│  MediaPipe PoseLandmarker (up to 4 people)         │
-│  MediaPipe FaceLandmarker (up to 4 people)         │
-│  Peak score across all frames and all persons      │
-└──────────────────────┬─────────────────────────────┘
-                       │  List[AudioEvent + reaction_score]
-                       ▼
-┌────────────────────────────────────────────────────┐
-│  GOAL 3: CC Decision Engine   src/fusion/          │
-│                                                    │
-│  Category lookup → per-category α, β, threshold   │
-│  combined = α×audio + β×visual + speech_bonus      │
-│  Scene-cut mode: audio-only, raised threshold      │
-│  Duration splitting: chunks ≤ 3s                   │
-└──────────────────────┬─────────────────────────────┘
-                       │  List[AcceptedEvent]
-                       ▼
-┌────────────────────────────────────────────────────┐
-│  OUTPUT   src/output/                              │
-│                                                    │
-│  SRT subtitle file (standard format)               │
-│  JSON report (machine-readable, full event data)   │
-│  HTML report (editor review, dark-themed)          │
-│  TXT summary (human-readable accept/reject list)   │
-└────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    A["🎬 Video Input"] --> B["Audio Extraction\n(ffmpeg + moviepy fallback)"]
+    A --> C["Frame Extraction\n(5 frames per event)"]
+    
+    B --> D["Goal 1: Sound Event Detection"]
+    
+    subgraph G1["src/audio/"]
+        D --> D1["YAMNet — 521 AudioSet classes\nTop-3 High-Impact Priority"]
+        D1 --> D2["Speech Filter\nWebRTC VAD + Energy fallback"]
+        D2 --> D3["Event Merging\nConsecutive same-label windows"]
+    end
+    
+    D3 --> |"List of AudioEvents"| E
+    
+    subgraph G2["src/visual/"]
+        C --> C1["Scene Cut Detection\nBhattacharyya histogram"]
+        C1 --> C2["Reaction Window\n300ms–1500ms after event"]
+        C2 --> C3["Pose Analysis\nFlinch · Head Turn"]
+        C2 --> C4["Face Analysis\nSurprise · Gasp"]
+    end
+    
+    C3 --> |"reaction_score"| E
+    C4 --> |"reaction_score"| E
+    
+    E["Goal 3: Category-Aware Fusion Engine"]
+    
+    subgraph G3["src/fusion/"]
+        E --> E1["combined = α·audio + β·visual + bonus"]
+        E1 --> E2{"combined ≥ threshold?"}
+        E2 --> |"ACCEPT"| F
+        E2 --> |"REJECT"| X["Filtered Out"]
+    end
+    
+    F["Output Formats"]
+    F --> F1["📄 SRT"]
+    F --> F2["📊 SLS"]
+    F --> F3["📋 JSON"]
+    F --> F4["🌐 HTML Report"]
+
+    style G1 fill:#1e293b,stroke:#60a5fa,color:#e2e8f0
+    style G2 fill:#1e293b,stroke:#c084fc,color:#e2e8f0
+    style G3 fill:#1e293b,stroke:#4ade80,color:#e2e8f0
+    style X fill:#7f1d1d,stroke:#f87171,color:#fca5a5
 ```
 
 ### Module Map
 
 | Module | Role |
 |---|---|
-| `src/audio/extractor.py` | ffmpeg audio extraction + OpenCV fallback |
+| `src/audio/extractor.py` | ffmpeg audio extraction + moviepy fallback |
 | `src/audio/yamnet_detector.py` | YAMNet 521-class detection, speech class filtering |
 | `src/audio/speech_filter.py` | WebRTC VAD + energy-based fallback |
 | `src/visual/scene_cut.py` | Bhattacharyya histogram scene cut detection |
@@ -183,8 +182,8 @@ Video
 | `src/visual/face_analyzer.py` | MediaPipe FaceLandmarker, multi-person |
 | `src/fusion/category_mapper.py` | Sound → behavioral category lookup |
 | `src/fusion/decision_engine.py` | Category-aware fusion, accept/reject decisions |
-| `src/output/srt_writer.py` | Standard SRT generation |
-| `src/output/label_mapper.py` | 114 YAMNet class → CC label mappings |
+| `src/output/srt_writer.py` | Standard SRT + SLS generation |
+| `src/output/label_mapper.py` | 150+ YAMNet class → CC label mappings |
 | `src/output/report_generator.py` | JSON + HTML report generation |
 | `src/pipeline.py` | End-to-end orchestrator |
 | `web/app.py` | FastAPI editorial review web interface |
@@ -251,15 +250,16 @@ Everything in `config/sound_categories.yaml`. Editors can tune thresholds for th
 | Format | Purpose |
 |---|---|
 | **SRT** | Standard subtitle format, importable into any video editor |
+| **SLS** | PlanetRead's pipe-delimited format with score metadata per event |
 | **JSON** | Machine-readable, full event dump with scores and rejection reasons |
 | **HTML** | Professional dark-themed editor review report (stats, category chart, event table, SRT preview) |
 | **TXT** | Human-readable accept/reject summary |
 
 ### Label Mappings — India-Specific
 
-114 YAMNet AudioSet class names mapped to human-readable CC brackets. India-specific mappings included:
+150+ YAMNet AudioSet class names mapped to human-readable CC brackets. India-specific mappings included:
 
-`Fireworks` → `[firecrackers]`, `Drum` → `[drums]`, `Bell` → `[bell]`, `Tabla` → `[tabla]`, `Flute` → `[flute]`, `Gong` → `[gong]`, `Crowd` → `[crowd noise]`
+`Fireworks` → `[firecrackers]`, `Drum` → `[drums]`, `Bell` → `[bell]`, `Tabla` → `[tabla]`, `Flute` → `[flute]`, `Gong` → `[gong]`, `Crowd` → `[crowd noise]`, `Harmonium` → `[harmonium]`, `Sitar` → `[sitar]`
 
 ### Web Interface (Bonus)
 
@@ -269,10 +269,11 @@ A full editorial review interface built with FastAPI and vanilla HTML/CSS/JS —
 - Real-time processing progress bar with stage labels
 - Stats bar: Detected / Accepted / Filtered / Filter Rate
 - Interactive video player with timeline markers
+- **Live CC overlay on video player** — captions appear as cinematic pill-shaped badges *on* the video during playback, color-coded by category (red glow for high-impact, blue for interactive, purple for social)
 - Event cards with CC label, timestamps, audio/visual scores, category badge, accept/reject toggle
 - Filter tabs: All / Accepted / Rejected
 - Live SRT preview that updates when toggles change
-- "Download SRT" exports only accepted events
+- "Download SRT" and "Download SLS" export accepted events
 
 ### Evaluation Framework
 
