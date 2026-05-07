@@ -129,17 +129,21 @@ function updatePlayhead() {
 
 function updateCaptionOverlay(currentTime) {
     const overlay = document.getElementById('cc-overlay');
-    // Find accepted event at current time
+    // Show caption during event AND for 2 extra seconds after it ends
+    // so user can actually read it
+    const LINGER = 2.0;
     const active = allEvents.find(e =>
         e.accepted &&
         currentTime >= e.start_time &&
-        currentTime <= e.end_time
+        currentTime <= e.end_time + LINGER
     );
 
     if (active) {
+        const isHighImpact = active.category === 'high_impact';
+        const sizeClass = isHighImpact ? 'cc-high-impact' : '';
         overlay.innerHTML = `
-            <span class="cc-text">${active.cc_text}
-                <span class="cc-category">${active.category}</span>
+            <span class="cc-text ${sizeClass}">${active.cc_text}
+                <span class="cc-category">${active.category.replace('_', ' ')}</span>
             </span>`;
         overlay.classList.add('visible');
 
@@ -148,7 +152,10 @@ function updateCaptionOverlay(currentTime) {
             card.classList.remove('cc-active');
         });
         const activeCard = document.querySelector(`.event-card[data-event-id="${active.id}"]`);
-        if (activeCard) activeCard.classList.add('cc-active');
+        if (activeCard) {
+            activeCard.classList.add('cc-active');
+            activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
     } else {
         overlay.classList.remove('visible');
         document.querySelectorAll('.event-card').forEach(card => {

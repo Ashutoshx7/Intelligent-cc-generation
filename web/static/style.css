@@ -464,6 +464,24 @@ body {
     margin-top: 2px;
 }
 
+.cc-overlay .cc-high-impact {
+    font-size: 22px;
+    color: #ff6b6b;
+    border-color: rgba(255, 107, 107, 0.4);
+    background: rgba(0, 0, 0, 0.9);
+    padding: 8px 24px;
+    animation: cc-pulse 0.5s ease;
+}
+
+.cc-overlay .cc-high-impact .cc-category {
+    color: rgba(255, 107, 107, 0.7);
+}
+
+@keyframes cc-pulse {
+    0% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
 /* ─── Timeline ─── */
 .timeline-container {
     padding: 10px 14px;
