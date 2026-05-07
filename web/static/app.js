@@ -146,7 +146,8 @@ function updateCaptionOverlay(currentTime) {
         const conf = Math.round(active.confidence * 100);
 
         overlay.innerHTML = `
-            <div class="cc-badge ${cat.replace('_', '-')}">
+            <div class="cc-badge ${cat.replace('_', '-')}"
+                 style="font-family:${ccFont}; font-size:${ccSize}px; color:${ccColor};">
                 <div class="cc-badge-icon">${icon}</div>
                 <div class="cc-badge-content">
                     <div class="cc-badge-label">${active.cc_text}</div>
@@ -154,6 +155,8 @@ function updateCaptionOverlay(currentTime) {
                 </div>
                 <div class="cc-badge-confidence">${conf}%</div>
             </div>`;
+        overlay.style.bottom = ccPosition === 'auto' ? '' : ccPosition;
+        overlay.style.top = ccPosition === 'auto' ? '48px' : '';
         overlay.classList.add('visible');
 
         // Highlight the active event card
@@ -259,6 +262,116 @@ function exportSRT() {
     if (currentJobId) window.location.href = `/api/export/${currentJobId}`;
 }
 
+function exportSLS() {
+    if (currentJobId) window.location.href = `/api/export-sls/${currentJobId}`;
+}
+
+// ── Caption Style Customizer ──
+
+let ccFont = "'Inter', system-ui, sans-serif";
+let ccSize = 15;
+let ccColor = '#ffffff';
+let ccPosition = '48px';
+let ccBgOpacity = 0.78;
+
+function toggleCustomizer() {
+    const body = document.getElementById('customizer-body');
+    const arrow = document.getElementById('customizer-arrow');
+    if (body.style.display === 'none') {
+        body.style.display = 'flex';
+        arrow.textContent = '▾';
+    } else {
+        body.style.display = 'none';
+        arrow.textContent = '▸';
+    }
+}
+
+function applyCaptionStyle() {
+    ccFont = document.getElementById('cc-font').value;
+    ccSize = parseInt(document.getElementById('cc-size').value);
+    ccPosition = document.getElementById('cc-position').value;
+    ccBgOpacity = parseInt(document.getElementById('cc-bg-opacity').value) / 100;
+
+    document.getElementById('cc-size-val').textContent = ccSize + 'px';
+    document.getElementById('cc-bg-val').textContent = Math.round(ccBgOpacity * 100) + '%';
+
+    // Apply live to any visible caption
+    const overlay = document.getElementById('cc-overlay');
+    const badge = overlay.querySelector('.cc-badge');
+    if (badge) {
+        badge.style.fontFamily = ccFont;
+        badge.style.fontSize = ccSize + 'px';
+        badge.style.color = ccColor;
+        badge.style.setProperty('--cc-bg-alpha', ccBgOpacity);
+    }
+
+    // Save to CSS custom properties for future captions
+    document.documentElement.style.setProperty('--cc-font', ccFont);
+    document.documentElement.style.setProperty('--cc-size', ccSize + 'px');
+    document.documentElement.style.setProperty('--cc-color', ccColor);
+    document.documentElement.style.setProperty('--cc-bg-alpha', ccBgOpacity);
+}
+
+function setCCColor(el) {
+    document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+    ccColor = el.dataset.color;
+    applyCaptionStyle();
+}
+
+// ── Keyboard Shortcuts ──
+
+document.addEventListener('keydown', (e) => {
+    // Don't interfere with inputs
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+    const video = document.getElementById('video-player');
+    if (!video || !currentJobId) return;
+
+    switch (e.key) {
+        case ' ':
+            e.preventDefault();
+            video.paused ? video.play() : video.pause();
+            break;
+        case 'ArrowLeft':
+            e.preventDefault();
+            video.currentTime = Math.max(0, video.currentTime - 5);
+            break;
+        case 'ArrowRight':
+            e.preventDefault();
+            video.currentTime = Math.min(video.duration, video.currentTime + 5);
+            break;
+        case 'j':
+        case 'J':
+            e.preventDefault();
+            jumpToEvent(-1);
+            break;
+        case 'k':
+        case 'K':
+            e.preventDefault();
+            jumpToEvent(1);
+            break;
+    }
+});
+
+function jumpToEvent(direction) {
+    const accepted = allEvents.filter(e => e.accepted).sort((a, b) => a.start_time - b.start_time);
+    if (!accepted.length) return;
+
+    const video = document.getElementById('video-player');
+    const ct = video.currentTime;
+
+    if (direction > 0) {
+        // Next event
+        const next = accepted.find(e => e.start_time > ct + 0.5);
+        if (next) seekTo(next.start_time);
+    } else {
+        // Previous event
+        const prev = [...accepted].reverse().find(e => e.start_time < ct - 0.5);
+        if (prev) seekTo(prev.start_time);
+    }
+}
+
 // ── Navigation ──
 
 function showSection(name) {
@@ -291,3 +404,4 @@ function srtTs(s) {
 }
 
 function p(n) { return String(n).padStart(2, '0'); }
+

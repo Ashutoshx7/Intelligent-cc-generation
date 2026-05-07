@@ -847,6 +847,146 @@ body {
     margin: 0;
 }
 
+/* ─── Caption Customizer Panel ─── */
+.customizer-panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.customizer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.customizer-header:hover { background: var(--bg-hover); }
+.customizer-header h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+}
+.customizer-toggle {
+    color: var(--text-muted);
+    font-size: 14px;
+    transition: transform 0.2s;
+}
+
+.customizer-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 16px 16px;
+    border-top: 1px solid var(--border);
+}
+
+.customizer-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.customizer-row label {
+    width: 80px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    flex-shrink: 0;
+}
+.customizer-row select {
+    flex: 1;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: 'Inter', system-ui, sans-serif;
+    outline: none;
+    cursor: pointer;
+}
+.customizer-row select:focus { border-color: var(--border-hover); }
+
+.customizer-row input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--bg-active);
+    outline: none;
+}
+.customizer-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--green);
+    cursor: pointer;
+    border: 2px solid var(--bg);
+}
+.customizer-row span {
+    font-size: 11px;
+    color: var(--text-muted);
+    width: 36px;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* ─── Color Swatches ─── */
+.color-swatches {
+    display: flex;
+    gap: 6px;
+}
+.swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    padding: 0;
+}
+.swatch:hover {
+    transform: scale(1.15);
+}
+.swatch.active {
+    border-color: var(--green);
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+}
+
+/* ─── Keyboard Shortcuts Bar ─── */
+.shortcuts-bar {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    padding: 12px;
+    margin-top: 16px;
+    border-top: 1px solid var(--border);
+}
+.shortcut-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-secondary);
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    line-height: 1.4;
+}
+
 /* ─── Responsive ─── */
 @media (max-width: 768px) {
     .app-container { padding: 16px; }
@@ -858,4 +998,6 @@ body {
         grid-template-columns: 36px 1fr 44px;
     }
     .event-scores, .category-badge { display: none; }
+    .shortcuts-bar { flex-wrap: wrap; gap: 10px; }
+    .customizer-row { flex-wrap: wrap; }
 }

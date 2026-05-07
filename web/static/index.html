@@ -74,6 +74,7 @@
                 <h2>Suggestions</h2>
                 <div class="results-actions">
                     <button class="btn" id="btn-new" onclick="resetApp()">← New</button>
+                    <button class="btn" onclick="exportSLS()">↓ SLS</button>
                     <button class="btn btn-primary" id="btn-export" onclick="exportSRT()">↓ Download SRT</button>
                 </div>
             </div>
@@ -102,6 +103,54 @@
                 <div class="cc-overlay" id="cc-overlay"></div>
             </div>
 
+            <!-- Caption Style Customizer -->
+            <div class="customizer-panel" id="customizer-panel">
+                <div class="customizer-header" onclick="toggleCustomizer()">
+                    <h4>🎨 Caption Style</h4>
+                    <span class="customizer-toggle" id="customizer-arrow">▸</span>
+                </div>
+                <div class="customizer-body" id="customizer-body" style="display:none;">
+                    <div class="customizer-row">
+                        <label>Font</label>
+                        <select id="cc-font" onchange="applyCaptionStyle()">
+                            <option value="'Inter', system-ui, sans-serif">Inter (Default)</option>
+                            <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+                            <option value="Georgia, serif">Georgia</option>
+                            <option value="'Courier New', monospace">Courier</option>
+                            <option value="Impact, sans-serif">Impact</option>
+                        </select>
+                    </div>
+                    <div class="customizer-row">
+                        <label>Size</label>
+                        <input type="range" id="cc-size" min="11" max="24" value="15" oninput="applyCaptionStyle()">
+                        <span id="cc-size-val">15px</span>
+                    </div>
+                    <div class="customizer-row">
+                        <label>Color</label>
+                        <div class="color-swatches">
+                            <button class="swatch active" data-color="#ffffff" onclick="setCCColor(this)" style="background:#ffffff"></button>
+                            <button class="swatch" data-color="#fef08a" onclick="setCCColor(this)" style="background:#fef08a"></button>
+                            <button class="swatch" data-color="#86efac" onclick="setCCColor(this)" style="background:#86efac"></button>
+                            <button class="swatch" data-color="#93c5fd" onclick="setCCColor(this)" style="background:#93c5fd"></button>
+                            <button class="swatch" data-color="#fca5a5" onclick="setCCColor(this)" style="background:#fca5a5"></button>
+                        </div>
+                    </div>
+                    <div class="customizer-row">
+                        <label>Position</label>
+                        <select id="cc-position" onchange="applyCaptionStyle()">
+                            <option value="48px">Bottom (Default)</option>
+                            <option value="50%">Center</option>
+                            <option value="auto">Top</option>
+                        </select>
+                    </div>
+                    <div class="customizer-row">
+                        <label>Background</label>
+                        <input type="range" id="cc-bg-opacity" min="0" max="100" value="78" oninput="applyCaptionStyle()">
+                        <span id="cc-bg-val">78%</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="timeline-container">
                 <div class="timeline-label">Timeline</div>
                 <div class="timeline-track" id="timeline-track">
@@ -123,6 +172,13 @@
             <div class="srt-preview">
                 <h3>⌘ SRT Output</h3>
                 <pre class="srt-content" id="srt-preview"></pre>
+            </div>
+
+            <!-- Keyboard Shortcuts -->
+            <div class="shortcuts-bar">
+                <span class="shortcut-hint"><kbd>Space</kbd> Play/Pause</span>
+                <span class="shortcut-hint"><kbd>←</kbd><kbd>→</kbd> ±5s</span>
+                <span class="shortcut-hint"><kbd>J</kbd><kbd>K</kbd> Prev/Next event</span>
             </div>
         </section>
     </div>
