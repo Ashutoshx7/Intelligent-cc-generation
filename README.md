@@ -18,8 +18,9 @@ Video → Audio Extraction → YAMNet Detection → Speech Filtering
 1. **Temporal Reaction Windows** — Extracts frames 300ms–1500ms *after* the sound (when reactions actually happen), not at the midpoint
 2. **Category-Aware Fusion** — Different sound types use different weights (explosions don't need visual confirmation; doorbells do)
 3. **Scene Cut Detection** — Skips visual analysis at edit points to prevent false positive reactions
-4. **Multi-Person Detection** — Analyzes up to 4 people per frame, takes peak reaction score
-5. **Overcaption Prevention** — Primary design goal is to filter ambient/insignificant sounds, not just detect everything
+4. **Top-3 High-Impact Priority** — When a dangerous sound (gunshot, explosion) appears in YAMNet's top 3 predictions, it's selected even if not the #1 class
+5. **Multi-Person Detection** — Analyzes up to 4 people per frame, takes peak reaction score
+6. **Overcaption Prevention** — Primary design goal is to filter ambient/insignificant sounds, not just detect everything (90% filter rate on real content)
 
 ## Setup
 
@@ -64,6 +65,7 @@ The web interface provides:
 - **Processing** — Real-time progress with pipeline stage updates
 - **Review** — Video player, interactive timeline, event cards with accept/reject toggles
 - **Export** — Download the final SRT file with only accepted captions
+- **Live CC Overlay** — Captions appear on the video player in real-time during playback, styled by category
 
 ## Output
 
@@ -130,7 +132,7 @@ All thresholds are tunable via YAML config — zero hardcoded magic numbers.
 │   ├── app.py                   # FastAPI backend
 │   └── static/                  # Monochrome web UI
 ├── tests/
-│   ├── test_all.py              # 19-test suite
+│   ├── test_all.py              # 30-test suite
 │   └── generate_test_data.py    # Synthetic video/audio generator
 ├── main.py                      # CLI entry point
 ├── setup.sh                     # One-command setup
@@ -140,7 +142,7 @@ All thresholds are tunable via YAML config — zero hardcoded magic numbers.
 ## Testing
 
 ```bash
-# Run all tests (19 tests)
+# Run all tests (30 tests)
 python -m pytest tests/test_all.py -v
 
 # Generate synthetic test data
@@ -157,7 +159,7 @@ python main.py samples/test_clip.avi --evaluate --ground-truth eval/ground_truth
 
 | Component | Tool |
 |---|---|
-| Audio extraction | ffmpeg (with OpenCV fallback) |
+| Audio extraction | ffmpeg (with moviepy fallback) |
 | Sound detection | YAMNet (TensorFlow Hub, 521 classes) |
 | Speech filtering | WebRTC VAD (with energy-based fallback) |
 | Pose detection | MediaPipe PoseLandmarker (Tasks API) |
@@ -186,7 +188,7 @@ python main.py samples/test_clip.avi --evaluate --ground-truth eval/ground_truth
 1. **YAMNet is AudioSet-trained (English/Western-centric)** — Indian-specific sounds (dhol, pressure cooker whistle, temple bells) may classify under generic labels. Mitigation: substring-based label mapper handles this, and PANNs can be swapped in via the fixed data contract.
 2. **Single-frame vs. multi-frame tradeoff** — We extract 5 frames in the reaction window (300–1500ms). For very fast reactions (<300ms) or slow dramatic reactions (>1500ms), the window may miss. The window is configurable in `default.yaml`.
 3. **No GPU required but slower on CPU** — YAMNet + MediaPipe run on CPU. A 10s video processes in ~4s. Longer videos scale linearly.
-4. **ffmpeg preferred for audio** — Without ffmpeg, the OpenCV fallback creates a silent WAV (visual-only analysis). Install ffmpeg for full audio+visual pipeline.
+4. **ffmpeg preferred for audio** — Without system ffmpeg, moviepy (bundled ffmpeg) handles extraction. Both produce full-fidelity audio.
 5. **WebRTC VAD may not install on all platforms** — Falls back to energy-based VAD automatically, which is less accurate for dense Hindi dialogue.
 6. **Confidence calibration** — YAMNet softmax scores are not true probabilities. Per-class calibration on representative Hindi content would improve threshold accuracy.
 
