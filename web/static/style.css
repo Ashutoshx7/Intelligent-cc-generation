@@ -477,10 +477,10 @@ body {
 }
 
 .cc-badge-label {
-    font-family: 'Inter', system-ui, sans-serif;
-    font-size: 15px;
+    font-family: inherit;
+    font-size: inherit;
     font-weight: 600;
-    color: #ffffff;
+    color: inherit;
     letter-spacing: 0.3px;
     line-height: 1.3;
 }

@@ -147,16 +147,30 @@ function updateCaptionOverlay(currentTime) {
 
         overlay.innerHTML = `
             <div class="cc-badge ${cat.replace('_', '-')}"
-                 style="font-family:${ccFont}; font-size:${ccSize}px; color:${ccColor};">
+                 style="font-family:${ccFont}; font-size:${ccSize}px; color:${ccColor};
+                        background: rgba(10,10,11,${ccBgOpacity});">
                 <div class="cc-badge-icon">${icon}</div>
                 <div class="cc-badge-content">
                     <div class="cc-badge-label">${active.cc_text}</div>
-                    <div class="cc-badge-meta">${cat.replace('_', ' ')}</div>
+                    <div class="cc-badge-meta" style="color: rgba(255,255,255,0.35);">${cat.replace('_', ' ')}</div>
                 </div>
                 <div class="cc-badge-confidence">${conf}%</div>
             </div>`;
-        overlay.style.bottom = ccPosition === 'auto' ? '' : ccPosition;
-        overlay.style.top = ccPosition === 'auto' ? '48px' : '';
+
+        // Position: bottom (default), center, or top
+        if (ccPosition === '50%') {
+            overlay.style.bottom = '';
+            overlay.style.top = '50%';
+            overlay.style.transform = 'translateY(-50%)';
+        } else if (ccPosition === 'auto') {
+            overlay.style.bottom = '';
+            overlay.style.top = '48px';
+            overlay.style.transform = 'translateY(0)';
+        } else {
+            overlay.style.top = '';
+            overlay.style.bottom = ccPosition;
+            overlay.style.transform = 'translateY(0)';
+        }
         overlay.classList.add('visible');
 
         // Highlight the active event card
