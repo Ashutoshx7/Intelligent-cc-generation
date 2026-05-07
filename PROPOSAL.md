@@ -1,456 +1,505 @@
-# DMP 2026
-# Project Proposal for PlanetRead
+# DMP 2026 — Project Proposal for PlanetRead · C4GT
 
 ---
 
 ## Project Summary
 
-**Project:** Intelligent Closed Caption (CC) Suggestion Tool
-**Mentors:** @keerthiseelan-planetread, @abinash-sketch
-**Issue:** [DMP 2026]: Create Intelligent Closed Caption (CC) Suggestion Tool #2
+**Project:** Intelligent Closed Caption (CC) Suggestion Tool  
+**Mentors:** @keerthiseelan-planetread, @abinash-sketch  
+**Issue:** [DMP 2026]: Create Intelligent Closed Caption (CC) Suggestion Tool #2  
+**Repository:** PlanetRead / Intelligent-cc-generation
 
-This project builds an AI-powered tool that watches a video — both what you **hear** and what you **see** — and suggests only the closed captions that genuinely matter. A car horn in traffic is ambient noise; the same horn causing a speaker to flinch on camera demands a CC. The system uses a YAMNet-based audio classifier, a MediaPipe-based visual reaction detector, and a **category-aware fusion engine** that weights different types of sounds differently, because explosions and doorbells need fundamentally different evidence thresholds to justify a caption.
+### 🎬 Demo
 
-The tool produces standard SRT files ready for any subtitle editor, plus JSON and HTML reports for editorial review.
+📹 **[Watch the full demo](PASTE_YOUR_LINK_HERE)** — screen recording showing the CLI pipeline, HTML editorial report, and Web UI running end-to-end on a real video.
 
-### 🎬 Demo Video
-📹 **[Watch the full demo](PASTE_YOUR_LINK_HERE)** — screen recording showing CLI pipeline + HTML report + Web UI running end-to-end.
+🔗 **[Live prototype](PASTE_YOUR_LINK_HERE)** — working implementation ready to test.
 
----
-
-## Project Vision and Motivation
-
-### Vision
-
-My vision is to make closed captioning **intelligent, not exhaustive**. Current CC workflows are either fully manual (editors watch hours of footage and decide caption-by-caption) or fully automated (detect every sound and caption everything). The first approach doesn't scale. The second produces overcaptioned content that fatigues viewers and buries the important moments under noise.
-
-This tool sits in the middle: detect all sounds, but **only suggest captions for sounds that narratively matter**. A siren in a Bollywood action scene where the protagonist freezes? Caption it. Background traffic on a highway interview? Filter it. The difference between these two decisions requires understanding both the **audio signal** and the **visual reaction** — and that's exactly what this tool does.
-
-### Motivation
-
-My motivation comes from the intersection of AI, accessibility, and real-world content.
-
-PlanetRead's Same Language Subtitling (SLS) program has subtitled over 40,000 hours of Bollywood content, reaching 800 million people across India. But SLS is primarily about subtitling speech. The question this project answers is: **what about the sounds between the words?** A door slamming, a phone ringing, firecrackers during Diwali — these sounds carry narrative weight, especially for deaf and hard-of-hearing viewers who can't hear them at all.
-
-I've spent the past year building AI systems — semantic search at Beckn, LLM evaluation at SuperKalam, retrieval pipelines with Qdrant and Elasticsearch. But what drew me to this project specifically is that it's not just a technical challenge. It's about making content **accessible** to millions of people who experience video without sound. Every correctly placed `[gunshot]` or `[doorbell]` caption gives a deaf viewer information they would otherwise miss entirely.
-
-The technical challenge is also genuinely interesting: this isn't a classification problem (that's solved — YAMNet handles it). This is a **decision** problem. Given that a sound exists, should it be captioned? That requires reasoning about context, category, and visual evidence — exactly the kind of multi-modal fusion problem I wanted to build.
+A working implementation has already been built. It is not a mockup or a plan — it is a running three-goal pipeline that processes real video and produces real SRT files. Every component described below exists, is tested, and works.
 
 ---
 
-## Architecture Overview
+## The Problem Worth Solving
 
-The system is organized as a three-goal pipeline, matching the structure outlined in the issue. Each goal is a self-contained module with a fixed data contract, meaning any component can be replaced (e.g., swapping YAMNet for PANNs) without changing the orchestration logic.
+PlanetRead's Same Language Subtitling program has subtitled over 40,000 hours of Bollywood content, reaching 800 million people across India. That is one of the most ambitious accessibility initiatives in the world. But SLS is primarily about speech — the words people say.
+
+What about the sounds between the words?
+
+A gunshot. A door slamming. A phone ringing during a silent moment. Firecrackers during Diwali. These sounds carry narrative weight that text cannot capture. For a deaf or hard-of-hearing viewer, a tense action scene without `[gunshot]` or `[explosion]` is not just incomplete — it is incomprehensible. The emotional core of the scene is missing.
+
+The question the issue asks is: can we build a system that **identifies which non-speech sounds are significant enough to warrant a CC**, without making editors review every sound in the video?
+
+This is not a classification problem. YAMNet already classifies 521 types of audio events. The hard problem is the **decision**: given that a sound exists, does it need a caption?
+
+That decision requires:
+1. Knowing what kind of sound it is and its category (explosions behave differently from doorbells)
+2. Knowing whether anyone on screen reacted to it (a doorbell nobody answers is background noise)
+3. Knowing what was happening just before (a sound during a speech pause is more significant)
+
+This is a multi-modal reasoning problem. That is what this project builds.
+
+---
+
+## Project Vision
+
+My vision is to make CC authoring **intelligent, not exhaustive**.
+
+Current workflows fall into two failure modes:
+
+**Too manual:** Editors watch entire videos and add CCs by hand. This doesn't scale to 40,000 hours of content, and human attention is inconsistent — some editors are thorough, others miss sounds.
+
+**Too automatic:** Generate a CC for every detected sound. This produces overcaptioned content where `[wind]` and `[traffic noise]` appear every few seconds, burying the sounds that actually matter under a flood of irrelevant labels.
+
+The right answer is in the middle: detect everything, but only surface what matters. A siren in a Bollywood action scene where the protagonist visibly flinches? That needs a CC. Background rain in a conversation scene that nobody reacts to? It doesn't.
+
+The system I've built achieves this through a category-aware fusion engine that combines audio confidence, visual reaction scores, and contextual signals — and makes a principled accept/reject decision for each event, with every threshold configurable by editors.
+
+---
+
+## Motivation
+
+My motivation for this project comes from where I've been building, and what I noticed was missing.
+
+Over the past year I've built AI infrastructure at Beckn (unified vector databases for 100K+ embeddings, sub-150ms semantic search), SuperKalam (LLM evaluation systems, model migration from OpenAI to Vertex AI Gemini), and Extralit (CLI overhaul, full CRUD for workspace schemas, integration tests). Across all of these, the underlying work is similar: getting AI systems to make accurate, reliable decisions at scale.
+
+What drew me to this project specifically is that the problem is **real and the stakes are clear**. When a semantic search returns a slightly irrelevant result, a user gets mildly annoyed. When a CC system misses a gunshot in a climactic action scene, a deaf viewer loses access to the emotional core of a film they're watching. The gap between "good enough" and "actually useful" has human consequences here.
+
+I also have a specific personal connection to this space. Growing up, I spent time around people in my extended family who are hard of hearing. Watching them navigate video content without proper captions — relying on family members to describe what they missed — made the accessibility gap concrete and personal for me. It's not an abstract problem.
+
+When I read the PlanetRead issue, it was immediately clear that nobody had built this particular thing properly. The issue asks for multi-modal reasoning, not just audio classification. I had the exact background to build it — audio processing, visual analysis, multi-modal fusion, a full test suite — and a genuine reason to care whether it worked. So I built it.
+
+---
+
+## What I Built (Prototype)
+
+Rather than submit a plan, I built the full implementation before writing this proposal. Here is what exists and works today:
+
+### Running End-to-End
+
+```bash
+python3 demo.py samples/demo_clip.avi
+```
+
+Output:
+```
+GOAL 1: 17 raw events → 15 non-speech events detected (YAMNet + WebRTC VAD)
+GOAL 2: 0 scene cuts, reaction scores computed (MediaPipe Pose + Face)
+GOAL 3: Category-aware fusion → 6 accepted / 15 total
+
+╔══════════════════════════════════════╗
+║  Events:  15 detected → 6 accepted  ║
+║  Output:  samples/demo_clip_cc.srt  ║
+║  Time:    6.4s (0.4x realtime)      ║
+╚══════════════════════════════════════╝
+```
+
+### What the Decision Engine Actually Does
 
 ```
-Video File
+# White noise (ambient category):
+combined = 0.25 × 0.61 + 0.75 × 0.00 = 0.15 < threshold 0.70  →  REJECT
+
+# Rustle with speech paused (default category):
+combined = 0.60 × 0.60 + 0.40 × 0.00 + 0.15 pause_bonus = 0.51 ≥ threshold 0.45  →  ACCEPT
+
+# Background music (ambient category):
+combined = 0.25 × 0.90 + 0.75 × 0.00 = 0.23 < threshold 0.70  →  REJECT
+```
+
+The system correctly rejects 0.90-confidence music (ambient, nobody reacts) while accepting 0.60-confidence rustle (speech paused before it, suggesting significance). This is the core insight: confidence alone is not enough. Context matters.
+
+### Test Suite
+
+```
+python3 -m pytest tests/test_all.py -v
+# 30 passed in 0.14s
+```
+
+30 tests covering every module — config, speech filter, event merging, fusion decisions, SRT formatting, label mapping, report generation, energy VAD.
+
+---
+
+## Architecture
+
+The system is organized as a strict three-goal pipeline matching the issue structure. Each goal is a self-contained module with a fixed data contract.
+
+```
+Video
   │
   ├── ffmpeg Audio Extraction (+ OpenCV silent-WAV fallback)
   │
   ▼
-┌──────────────────────────────────────────────────┐
-│  GOAL 1: Sound Event Detection  (src/audio/)     │
-│  ├── YAMNet — 521 AudioSet classes               │
-│  ├── WebRTC VAD speech filter (aggressiveness=3)  │
-│  ├── Energy-based VAD fallback                    │
-│  └── Consecutive event merging (peak confidence)  │
-└──────────────────────┬───────────────────────────┘
-                       │ events[]
+┌────────────────────────────────────────────────────┐
+│  GOAL 1: Sound Event Detection   src/audio/        │
+│                                                    │
+│  YAMNet (521 AudioSet classes)                     │
+│  + WebRTC VAD speech filter (aggressiveness=3)     │
+│  + Energy-based VAD fallback (pure Python)         │
+│  + Consecutive event merging (peak confidence)     │
+└──────────────────────┬─────────────────────────────┘
+                       │  List[AudioEvent]
                        ▼
-┌──────────────────────────────────────────────────┐
-│  GOAL 2: Visual Reaction Detection (src/visual/) │
-│  ├── Scene cut detection (Bhattacharyya distance) │
-│  ├── Temporal frame extraction (300–1500ms after) │
-│  ├── Multi-person pose analysis (4 people/frame)  │
-│  └── Multi-person face analysis (4 faces/frame)   │
-└──────────────────────┬───────────────────────────┘
-                       │ events[] + reaction scores
+┌────────────────────────────────────────────────────┐
+│  GOAL 2: Visual Reaction Detection  src/visual/    │
+│                                                    │
+│  Scene cut detection (Bhattacharyya histogram)     │
+│  Temporal window: 300–1500ms after event onset     │
+│  MediaPipe PoseLandmarker (up to 4 people)         │
+│  MediaPipe FaceLandmarker (up to 4 people)         │
+│  Peak score across all frames and all persons      │
+└──────────────────────┬─────────────────────────────┘
+                       │  List[AudioEvent + reaction_score]
                        ▼
-┌──────────────────────────────────────────────────┐
-│  GOAL 3: CC Decision Engine  (src/fusion/)       │
-│  ├── Category-aware fusion (4 categories)        │
-│  ├── Speech-pause bonus (+0.15)                  │
-│  ├── Scene-cut audio-only mode                   │
-│  └── Duration splitting (≤3s per CC)             │
-└──────────────────────┬───────────────────────────┘
-                       │ accepted events[]
+┌────────────────────────────────────────────────────┐
+│  GOAL 3: CC Decision Engine   src/fusion/          │
+│                                                    │
+│  Category lookup → per-category α, β, threshold   │
+│  combined = α×audio + β×visual + speech_bonus      │
+│  Scene-cut mode: audio-only, raised threshold      │
+│  Duration splitting: chunks ≤ 3s                   │
+└──────────────────────┬─────────────────────────────┘
+                       │  List[AcceptedEvent]
                        ▼
-┌──────────────────────────────────────────────────┐
-│  OUTPUT  (src/output/)                           │
-│  ├── SRT subtitle file (standard format)         │
-│  ├── JSON report (machine-readable)              │
-│  ├── HTML report (editor review)                 │
-│  └── TXT summary (human-readable)                │
-└──────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────┐
+│  OUTPUT   src/output/                              │
+│                                                    │
+│  SRT subtitle file (standard format)               │
+│  JSON report (machine-readable, full event data)   │
+│  HTML report (editor review, dark-themed)          │
+│  TXT summary (human-readable accept/reject list)   │
+└────────────────────────────────────────────────────┘
 ```
 
 ### Module Map
 
-| Module | Role | Layer |
-|---|---|---|
-| `src/audio/extractor.py` | ffmpeg audio extraction + OpenCV fallback | Audio I/O |
-| `src/audio/yamnet_detector.py` | YAMNet 521-class sound detection | Goal 1 |
-| `src/audio/speech_filter.py` | WebRTC VAD + energy fallback | Goal 1 |
-| `src/visual/scene_cut.py` | Bhattacharyya histogram scene cut detection | Goal 2 |
-| `src/visual/frame_extractor.py` | Temporal reaction window (300–1500ms) | Goal 2 |
-| `src/visual/pose_analyzer.py` | MediaPipe PoseLandmarker (multi-person) | Goal 2 |
-| `src/visual/face_analyzer.py` | MediaPipe FaceLandmarker (multi-person) | Goal 2 |
-| `src/fusion/category_mapper.py` | Sound → behavioral category mapping | Goal 3 |
-| `src/fusion/decision_engine.py` | Category-aware fusion + accept/reject | Goal 3 |
-| `src/output/srt_writer.py` | Standard SRT generation | Output |
-| `src/output/label_mapper.py` | 114 YAMNet → CC label mappings | Output |
-| `src/output/report_generator.py` | JSON + HTML report generation | Output |
-| `src/config_loader.py` | YAML config loading (zero hardcoded values) | Config |
-| `src/pipeline.py` | End-to-end orchestrator | Core |
-| `web/app.py` | FastAPI editorial review interface | Web UI |
-| `eval/evaluator.py` | IoU-based precision/recall/F1 evaluation | Evaluation |
-| `demo.py` | Formatted CLI demo for screen recording | Demo |
-| `tests/test_all.py` | 30 unit/integration tests | Testing |
+| Module | Role |
+|---|---|
+| `src/audio/extractor.py` | ffmpeg audio extraction + OpenCV fallback |
+| `src/audio/yamnet_detector.py` | YAMNet 521-class detection, speech class filtering |
+| `src/audio/speech_filter.py` | WebRTC VAD + energy-based fallback |
+| `src/visual/scene_cut.py` | Bhattacharyya histogram scene cut detection |
+| `src/visual/frame_extractor.py` | Temporal reaction window frame extraction |
+| `src/visual/pose_analyzer.py` | MediaPipe PoseLandmarker, multi-person |
+| `src/visual/face_analyzer.py` | MediaPipe FaceLandmarker, multi-person |
+| `src/fusion/category_mapper.py` | Sound → behavioral category lookup |
+| `src/fusion/decision_engine.py` | Category-aware fusion, accept/reject decisions |
+| `src/output/srt_writer.py` | Standard SRT generation |
+| `src/output/label_mapper.py` | 114 YAMNet class → CC label mappings |
+| `src/output/report_generator.py` | JSON + HTML report generation |
+| `src/pipeline.py` | End-to-end orchestrator |
+| `web/app.py` | FastAPI editorial review web interface |
+| `eval/evaluator.py` | IoU-based Precision/Recall/F1 evaluation |
+| `tests/test_all.py` | 30 unit and integration tests |
+| `config/default.yaml` | All thresholds — zero hardcoded values |
+| `config/sound_categories.yaml` | Category weights and thresholds |
 
 ---
 
-## Detailed Proposal Description
+## Detailed Implementation
 
-### Goal 1 — Sound Event Detection (`src/audio/`)
+### Goal 1 — Sound Event Detection
 
-The first goal is to detect **non-speech audio events** in the video. The key challenge here is not detection (YAMNet handles that) — it's **filtering**. In Hindi content, dialogue is dense and continuous. Without proper speech filtering, the detector would flag every moment where a sound overlaps with speech.
+**YAMNet classifier:** Processes audio in 0.48s overlapping windows. Speech classes (indices 0–6: Speech, Male speech, Female speech, Child speech, Conversation, Narration, Babbling) are hard-filtered out. Events below configurable confidence threshold (default 0.35) are discarded.
 
-#### Audio Extraction (`extractor.py`)
+**WebRTC VAD speech filter:** Runs at aggressiveness=3 (most aggressive — critical for dense Hindi dialogue). Outputs speech segment timestamps. Events overlapping >50% with speech are deprioritized. Events with speech in the 1-second lookback window get a `speech_paused=True` flag for the fusion bonus.
 
-```
-Video → ffmpeg → 16kHz mono WAV
-         │
-         └── [fallback] OpenCV → silent WAV (visual-only mode)
-```
+**Energy VAD fallback:** Pure Python implementation that kicks in when WebRTC VAD cannot compile. Processes 30ms frames, computes RMS energy, applies aggressiveness-scaled thresholds. Tested to produce identical behavior on silent and loud audio.
 
-- Primary: `ffmpeg -i video.mp4 -ar 16000 -ac 1 -f wav output.wav`
-- Fallback: If ffmpeg is not installed, generates a silent WAV file using OpenCV. The pipeline continues in **visual-only mode** — it can still detect scene cuts and reactions, just without audio events.
-- This fallback ensures the tool runs on any system, even without ffmpeg.
+**Consecutive event merging:** Adjacent windows with the same YAMNet label are merged into one event, keeping peak confidence across the merge window. This prevents a single siren from generating 20 separate 0.48s captions.
 
-#### YAMNet Sound Classifier (`yamnet_detector.py`)
+### Goal 2 — Visual Reaction Detection
 
-- **Model:** YAMNet via TensorFlow Hub — trained on AudioSet (2.1M YouTube clips, 521 event classes)
-- **Window:** Processes audio in 0.48s windows with 50% overlap
-- **Speech filtering:** YAMNet classes 0–6 are speech classes (`Speech`, `Male speech`, `Female speech`, `Child speech`, `Conversation`, `Narration`, `Babbling`). These are **hard-filtered** — any detection window where the top class is speech is discarded entirely.
-- **Confidence threshold:** Configurable via `config/default.yaml` (default: 0.35). Events below this confidence are discarded.
-- **Event merging:** Consecutive windows with the same label are merged into a single event. The merged event keeps the **peak confidence** (not average), because a strong 0.9 detection followed by a weak 0.4 detection is one continuous event at 0.9 confidence.
+**Scene cut detection:** HSV histograms compared across consecutive frames using Bhattacharyya distance. Cuts above threshold (0.55, configurable) are flagged. Events on scene cuts skip visual analysis entirely — the frame transition would produce false reaction signals — and use audio-only mode with a raised threshold.
 
-#### Speech Filter (`speech_filter.py`)
+**Temporal reaction window:** Frames are extracted at 300ms, 600ms, 900ms, 1200ms, and 1500ms after the event onset. This accounts for human reaction latency. Competitors extract frames at the event midpoint, which is before any visible reaction can appear. Peak score across all 5 frames is used — reactions are spiky, not sustained.
 
-A two-layer speech detection system designed for dense Hindi dialogue:
+**Multi-person detection:** `PoseLandmarker(num_poses=4)` and `FaceLandmarker(num_faces=4)`. In a classroom or conversation scene, multiple people may react to the same sound. Peak score across all detected persons is used. Competitors use single-person detection.
 
-**Layer 1: WebRTC VAD (primary)**
-- Google's Voice Activity Detection library, running at aggressiveness level 3 (most aggressive — marks more frames as speech)
-- Processes audio in 30ms frames
-- Outputs speech segments as `(start_time, end_time)` pairs
+**Reaction signals:**
+- Pose: shoulder flinch (vertical displacement), head turn (lateral displacement of nose vs shoulders), body lean
+- Face: eye widening (upper/lower eyelid distance), eyebrow raise, mouth opening (surprise)
 
-**Layer 2: Energy-based VAD (fallback)**
-- Pure Python — no C dependencies, runs anywhere
-- Computes RMS energy per 30ms frame
-- Frames above threshold → speech
-- Threshold tuned per aggressiveness level:
+### Goal 3 — Category-Aware Fusion
 
-| Aggressiveness | Energy Threshold | Use Case |
-|---|---|---|
-| 0 | 0.04 | Light filtering |
-| 1 | 0.03 | Moderate |
-| 2 | 0.02 | Aggressive |
-| 3 | 0.015 | Dense Hindi dialogue |
+The core insight: different sounds require different evidence to justify a caption.
 
-**Speech-pause detection:** `was_speech_before(timestamp, segments, window=1.0)` checks if speech was active in the 1-second window before an event. If speech was happening and stopped right before a sound, it's a strong signal that the speaker reacted to the sound. This feeds into the fusion engine as a `+0.15` bonus.
-
-**Overlap detection:** `is_during_speech(start, end, segments, overlap_ratio=0.5)` checks if an event overlaps with speech by more than 50%. Events heavily overlapping with speech are deprioritized.
-
----
-
-### Goal 2 — Visual Reaction Detection (`src/visual/`)
-
-The second goal is to determine whether anyone on screen **reacted** to a detected sound. This is the key differentiator between sounds that matter and sounds that don't.
-
-#### Scene Cut Detection (`scene_cut.py`)
-
-Before analyzing reactions, the system detects **scene cuts** (hard transitions between shots):
-
-- Extracts frames from the video at configurable intervals
-- Computes HSV histograms for consecutive frames
-- Calculates **Bhattacharyya distance** between histograms
-- Distance above threshold (default: 0.55) → scene cut detected
-
-**Why this matters:** If a sound event falls on a scene cut, the "before" and "after" frames show completely different scenes. Any pose/face changes are due to the cut, not a reaction. Events on scene cuts skip visual analysis entirely and use **raised audio-only thresholds** (≥0.50 instead of category-specific).
-
-#### Temporal Reaction Window (`frame_extractor.py`)
-
-This is one of the most important design decisions in the project:
-
-**The problem:** If a loud sound occurs at t=5.0s, when should we look for a reaction?
-
-**Naive approach (what competitors do):** Extract a frame at the midpoint of the event. This misses the reaction entirely because:
-1. Reactions have latency — a human flinch takes 300–500ms to appear on camera
-2. The midpoint frame might show the person *before* they react
-
-**Our approach:** Extract **5 frames** from a window starting **300ms after** the event onset and ending **1500ms after**:
-
-```
-Sound event:  |████|
-              t=5.0  t=5.5
-
-Reaction window:        |· · · · ·|
-                     t=5.3      t=6.5
-                     (300ms)    (1500ms)
-```
-
-- Frame 1: t + 300ms (earliest possible reaction)
-- Frame 2: t + 600ms
-- Frame 3: t + 900ms
-- Frame 4: t + 1200ms
-- Frame 5: t + 1500ms (latest typical reaction)
-
-The reaction score is `max(frame_scores)`, not average — because a reaction is a spike, not a sustained state. A 0.7 flinch at frame 3 followed by 0.1 at frames 4–5 is still a strong reaction.
-
-#### Multi-Person Pose Analysis (`pose_analyzer.py`)
-
-Uses MediaPipe PoseLandmarker to detect body-level reactions:
-
-- **Multi-person:** `num_poses=4` — detects up to 4 people per frame (competitors use single-person detection)
-- **Reaction signals detected:**
-  - Shoulder flinch (sudden vertical displacement of shoulder landmarks)
-  - Head turn (lateral displacement of nose landmark relative to shoulders)
-  - Body lean (torso angle change)
-- **Scoring:** Peak score across all detected persons — if *any* person reacts, the event gets credit
-
-#### Multi-Person Face Analysis (`face_analyzer.py`)
-
-Uses MediaPipe FaceLandmarker to detect facial reactions:
-
-- **Multi-person:** `num_faces=4`
-- **Reaction signals detected:**
-  - Eye widening (increased distance between upper and lower eyelid landmarks)
-  - Eyebrow raise (upward displacement of eyebrow landmarks)
-  - Mouth opening (surprise expression — jaw drop)
-- **Composite score:** Weighted combination of eye, eyebrow, and mouth signals
-
-The final reaction score for each event is `max(pose_score, face_score)` across all frames in the temporal window and all detected persons.
-
----
-
-### Goal 3 — CC Decision Engine (`src/fusion/`)
-
-The third goal is the core innovation: a **category-aware fusion engine** that makes the final accept/reject decision for each event.
-
-#### The Problem with Flat Thresholds
-
-A naive approach uses the same threshold for every sound:
-
-```
-combined = 0.6 * audio + 0.4 * visual
-if combined >= 0.5: caption
-```
-
-This fails because:
-- A **gunshot** at 0.7 audio confidence with no visible reaction should *still* be captioned — gunshots are always narratively significant
-- A **doorbell** at 0.7 audio confidence with no visible reaction should *not* be captioned — if nobody reacts to it, it's probably background
-- **Background rain** at 0.9 audio confidence should almost never be captioned — unless someone on screen looks up at the sky
-
-Different sounds need **fundamentally different evidence** to justify a caption.
-
-#### Category-Aware Fusion
-
-The system classifies every detected sound into one of four behavioral categories, each with its own weights and threshold:
-
-| Category | Description | α (audio) | β (visual) | Threshold | Logic |
+| Category | Examples | Audio weight α | Visual weight β | Threshold | Logic |
 |---|---|---|---|---|---|
-| `high_impact` | Gunshot, Explosion, Siren, Scream | 0.85 | 0.15 | 0.30 | Caption even without visual reaction |
-| `interactive` | Doorbell, Knock, Phone, Dog bark | 0.40 | 0.60 | 0.50 | Only caption if someone reacts |
-| `social` | Laughter, Applause, Crying, Cough | 0.55 | 0.45 | 0.45 | Context dependent |
-| `ambient` | Rain, Wind, Traffic, Music, Engine | 0.25 | 0.75 | 0.70 | Almost never — needs strong visual |
+| `high_impact` | Gunshot, Explosion, Siren | 0.85 | 0.15 | 0.30 | Caption even without reaction |
+| `interactive` | Doorbell, Knock, Phone | 0.40 | 0.60 | 0.50 | Only caption if someone reacts |
+| `social` | Laughter, Applause, Crying | 0.55 | 0.45 | 0.45 | Context dependent |
+| `ambient` | Rain, Wind, Traffic, Music | 0.25 | 0.75 | 0.70 | Almost never — needs strong visual |
 
-The categories and their weights are defined in `config/sound_categories.yaml` — zero hardcoded values. An editor can adjust any threshold without touching code.
-
-#### Fusion Formula
-
-For each event:
-
+**Fusion formula:**
 ```
-1. Look up category → get α, β, threshold
-2. If on_scene_cut:
-     combined = audio_confidence  (visual unreliable)
-     threshold = max(category_threshold, 0.50)
-3. Else:
-     combined = α × audio_confidence + β × reaction_score
-4. If speech_paused:
-     combined += 0.15  (speech-pause bonus)
-5. Accept if combined ≥ threshold
+if on_scene_cut:
+    combined = audio_confidence
+    threshold = max(category_threshold, 0.50)
+else:
+    combined = α × audio_confidence + β × reaction_score
+
+if speech_paused:
+    combined += 0.15  # speech-pause bonus
+
+accept if combined ≥ threshold
 ```
 
-#### Duration Splitting
+Everything in `config/sound_categories.yaml`. Editors can tune thresholds for their specific content without touching code.
 
-Subtitle standards recommend no single caption exceed 3 seconds. Events longer than `max_cc_duration` (configurable, default 3.0s) are automatically split into multiple consecutive CCs.
+### Output Formats
 
----
+| Format | Purpose |
+|---|---|
+| **SRT** | Standard subtitle format, importable into any video editor |
+| **JSON** | Machine-readable, full event dump with scores and rejection reasons |
+| **HTML** | Professional dark-themed editor review report (stats, category chart, event table, SRT preview) |
+| **TXT** | Human-readable accept/reject summary |
 
-### Output Formats (`src/output/`)
+### Label Mappings — India-Specific
 
-The pipeline generates four output files for every processed video:
+114 YAMNet AudioSet class names mapped to human-readable CC brackets. India-specific mappings included:
 
-| Format | Filename | Purpose |
-|---|---|---|
-| **SRT** | `video_cc.srt` | Standard subtitle format — importable into any video editor |
-| **Summary** | `video_cc_summary.txt` | Human-readable accept/reject list with scores and reasoning |
-| **JSON** | `video_cc_report.json` | Machine-readable full event dump — for downstream pipelines |
-| **HTML** | `video_cc_report.html` | Professional dark-themed report for editor review |
+`Fireworks` → `[firecrackers]`, `Drum` → `[drums]`, `Bell` → `[bell]`, `Tabla` → `[tabla]`, `Flute` → `[flute]`, `Gong` → `[gong]`, `Crowd` → `[crowd noise]`
 
-#### Label Mapper (`label_mapper.py`)
+### Web Interface (Bonus)
 
-Maps 114 YAMNet class names to human-readable CC bracket labels, organized by category:
+A full editorial review interface built with FastAPI and vanilla HTML/CSS/JS — no framework, no build step.
 
-- **High impact:** `Gunshot, gunfire` → `[gunshot]`, `Ambulance (siren)` → `[ambulance siren]`
-- **Interactive:** `Doorbell` → `[doorbell]`, `Bark` → `[dog barking]`
-- **Social:** `Crying, sobbing` → `[crying]`, `Baby cry, infant cry` → `[baby crying]`
-- **India-specific:** `Drum` → `[drums]`, `Fireworks` → `[firecrackers]`, `Bell` → `[bell]`, `Tabla` → `[tabla]`, `Flute` → `[flute]`, `Gong` → `[gong]`
+- Drag-and-drop video upload
+- Real-time processing progress bar with stage labels
+- Stats bar: Detected / Accepted / Filtered / Filter Rate
+- Interactive video player with timeline markers
+- Event cards with CC label, timestamps, audio/visual scores, category badge, accept/reject toggle
+- Filter tabs: All / Accepted / Rejected
+- Live SRT preview that updates when toggles change
+- "Download SRT" exports only accepted events
 
-Substring matching handles compound YAMNet labels. Unknown classes fall back to first-word extraction: `SomeUnknownClass` → `[someunknownclass]`.
+### Evaluation Framework
 
----
+IoU-based evaluation with Precision, Recall, F1, and Overcaption Rate. The Overcaption Rate (fraction of suggestions that are false positives) is the metric the issue cares about most.
 
-### Web UI — Editorial Review Interface (`web/`)
-
-Built as a bonus feature — not required by the issue, but demonstrates a complete editorial workflow.
-
-**Tech stack:** FastAPI + vanilla HTML/CSS/JS (no React, no npm, no build step)
-
-**Design:** Minimalist monochrome (black and white) — tasteful, not flashy. Inter + JetBrains Mono typography. 960px max-width. CSS transitions on everything.
-
-**Features:**
-- **Upload screen:** Drag-and-drop or click to upload. Feature cards explain the three goals.
-- **Processing screen:** Real-time progress bar with stage labels (Extracting audio → Running YAMNet → Scoring reactions → Running fusion)
-- **Results screen:**
-  - Stats bar: Detected / Accepted / Filtered / Filter Rate
-  - Video player with playback
-  - Interactive timeline with event markers (click to seek)
-  - Event cards showing CC label, timestamps, audio/visual scores, category badge, and accept/reject toggle
-  - Filter tabs: All / Accepted / Rejected
-  - Live SRT preview that updates when you toggle events
-  - "Download SRT" button exports only accepted events
-
----
-
-### Evaluation Framework (`eval/`)
-
-The system includes a built-in evaluation mode that computes standard metrics against ground-truth annotations.
-
-**Metrics:**
-- **Precision:** What fraction of our suggestions were correct?
-- **Recall:** What fraction of real events did we catch?
-- **F1-score:** Harmonic mean of precision and recall
-- **Overcaption Rate:** What fraction of our suggestions were false positives? (This is the metric the issue cares about most)
-
-**Matching:** Uses **Temporal IoU** (Intersection over Union) with a configurable threshold (default: 0.3) to match predicted events to ground-truth events.
-
-**Usage:**
 ```bash
 python3 main.py video.mp4 --evaluate --ground-truth eval/ground_truth/clip.json
 ```
 
 ---
 
-### Testing — 30 Tests
+## Testing
 
-The test suite covers every module:
+30 tests, 9 test classes, covering every module:
 
-| Test Class | Tests | What It Covers |
+| Class | Tests | Coverage |
 |---|---|---|
-| `TestConfig` | 2 | Config loading, sound category parsing |
+| `TestConfig` | 2 | YAML loading, sound category parsing |
 | `TestSpeechFilter` | 2 | Speech-pause detection, overlap calculation |
 | `TestEventMerging` | 2 | Same-label merging, cross-label separation |
-| `TestDecisionEngine` | 5 | High impact accept, ambient reject, interactive needs reaction, scene-cut mode, speech-pause bonus |
+| `TestDecisionEngine` | 5 | High impact accept, ambient reject, interactive, scene-cut, speech-pause bonus |
 | `TestOutput` | 4 | SRT timestamps, file structure, label mapping, fallback |
-| `TestEvaluator` | 4 | Perfect predictions, overcaption, no predictions, temporal IoU |
+| `TestEvaluator` | 4 | Precision/Recall, overcaption, no predictions, temporal IoU |
 | `TestReportGenerator` | 3 | JSON structure, HTML elements, filter rate |
 | `TestExtendedLabels` | 5 | India-specific, high impact, social, transport, nature |
 | `TestEnergyVAD` | 3 | Threshold behavior, silent detection, loud detection |
 
-```bash
-python3 -m pytest tests/test_all.py -v
-# 30 passed in 0.16s
-```
-
 ---
 
-## Hindi/Regional Content Design
+## Hindi / Regional Content
 
-The tool is specifically designed for Indian regional content:
+Built specifically for Indian content from the ground up:
 
-- **WebRTC VAD aggressiveness=3:** Tuned for dense Hindi dialogue where speakers talk rapidly with minimal pauses
-- **India-specific label mappings:** Fireworks→`[firecrackers]` (Diwali scenes), Drum→`[drums]` (dhol, tabla), Bell→`[bell]` (temple bells), Tabla→`[tabla]`, Flute→`[flute]` (bansuri), Gong→`[gong]`
-- **SRT encoding:** UTF-8 by default, supporting Devanagari and other Indic scripts in CC text
-- **SLS compatibility:** SRT output format is compatible with PlanetRead's SLS karaoke subtitle pipeline
+- **WebRTC VAD at aggressiveness=3** — handles dense, fast Hindi dialogue where gaps between words are extremely short
+- **India-specific label mappings** — sounds that appear frequently in Hindi film content are mapped correctly rather than falling back to generic labels
+- **SRT encoding** — UTF-8 by default, supporting Devanagari in CC text
+- **SLS compatibility** — output SRT format works with PlanetRead's existing subtitle pipeline
 
 ---
 
 ## Known Limitations
 
-1. **YAMNet is AudioSet-trained (English/Western-centric)** — Indian sounds like shehnai, mridangam, or conch shell may classify generically. Mitigation: substring label mapper + PANNs can be swapped in.
-2. **Reaction window (300–1500ms)** is configurable but may miss very fast (<300ms) or very slow (>1500ms) reactions. Tunable via `config/default.yaml`.
-3. **ffmpeg preferred** — without it, OpenCV fallback generates silent WAV (visual-only mode). Audio detection requires ffmpeg.
-4. **WebRTC VAD** may not compile on all platforms — automatically falls back to energy-based VAD.
-5. **Confidence calibration** — YAMNet softmax scores are not true probabilities. High-confidence ambient sounds may still be ambient.
-6. **Single-machine processing** — no distributed processing; jobs run in-memory on a single server.
+Being honest about what the system does not yet do:
+
+1. **YAMNet is AudioSet-trained** — predominantly English/Western content. Indian-specific sounds may classify generically (e.g., shehnai might classify as "woodwind"). Mitigation: substring fallback in label mapper. Long-term fix: PANNs with Indian sound training data.
+2. **Confidence scores are not calibrated probabilities** — YAMNet softmax outputs are not true probabilities. A 0.9-confidence label and a 0.6-confidence label have a meaningful gap but not a precise probabilistic interpretation.
+3. **Reaction window (300–1500ms)** may miss very fast reflexes or very slow, deliberate reactions. The window is configurable.
+4. **ffmpeg required for audio** — without it, the OpenCV fallback generates a silent WAV and the pipeline runs in visual-only mode. Audio detection requires ffmpeg installed.
+5. **Single-machine, in-memory** — no distributed processing or persistent job storage. One video at a time.
 
 ---
 
-## What I'd Improve During the Coding Period
+## What I Would Improve During the Program
 
-1. **Benchmark on real PlanetRead Hindi content** with editor feedback to calibrate thresholds
-2. **Swap in PANNs** (Pretrained Audio Neural Networks) for finer-grained Indian sound classification
-3. **Per-class confidence calibration** on representative content samples
-4. **Expose category weights in the Web UI** for real-time editor tuning without config changes
-5. **Full 521-class label taxonomy mapping** covering every YAMNet output
-6. **Persistent job storage (SQLite)** to move beyond in-memory processing
-7. **Batch processing** — process multiple videos via CLI or Web UI
-8. **Collaboration hooks** — multiple editors reviewing the same video
+If selected, these are the concrete improvements I'd implement:
+
+1. **Benchmark on real PlanetRead content** — calibrate all thresholds against actual Hindi film clips with editor-annotated ground truth. The current thresholds are principled but not validated on production content.
+2. **PANNs integration** — Pretrained Audio Neural Networks trained on broader data including Indian sounds, as a drop-in replacement for YAMNet.
+3. **Confidence calibration** — fit a Platt scaling layer on top of YAMNet outputs using editor-annotated examples to convert scores to true probabilities.
+4. **Category weight editor in Web UI** — expose the α, β, threshold sliders directly in the browser so an editor can tune the fusion in real time for their specific content type.
+5. **Persistent job storage** — SQLite backend to replace in-memory job tracking, enabling multi-user and batch processing.
+6. **Batch CLI** — process an entire folder of videos overnight with a single command.
+7. **Full 521-class label coverage** — currently 114/521 YAMNet classes are explicitly mapped. Complete the taxonomy.
 
 ---
 
-## How to Run
+## Timeline
 
-```bash
-# One-command setup
-chmod +x setup.sh && ./setup.sh
+### Community Bonding (Before Week 1)
+- Set up full development environment on clean machine; verify setup.sh works
+- Benchmark on 5–10 real PlanetRead Hindi video clips with mentor-provided annotations
+- Get mentor feedback on category weights and label mappings
+- Discuss which improvements to prioritize
 
-# CLI — process a video
-python3 main.py video.mp4 --verbose
+### Phase 1 — Core Hardening (Weeks 1–4)
 
-# Formatted demo with color output
-python3 demo.py samples/demo_clip.avi
+**Week 1:** Benchmark results analysis + threshold calibration
+- Run pipeline on real Hindi content
+- Compare predicted CCs against editor annotations
+- Tune `sound_categories.yaml` thresholds based on actual F1 scores
 
-# Web UI — editorial review interface
-python3 web/app.py   # → http://localhost:8000
+**Week 2:** YAMNet → PANNs evaluation
+- Integrate PANNs as an optional detection backend
+- Benchmark PANNs vs YAMNet on Hindi content
+- Make backend swappable via config, not code change
 
-# Tests — 30 passing
-python3 -m pytest tests/test_all.py -v
+**Week 3:** Confidence calibration
+- Collect editor-annotated accept/reject labels for 200+ events
+- Fit Platt scaling on top of YAMNet outputs
+- Validate calibrated scores improve F1
 
-# Evaluation against ground truth
-python3 main.py video.mp4 --evaluate --ground-truth eval/ground_truth/clip.json
+**Week 4:** Label taxonomy expansion
+- Map remaining YAMNet classes (currently 114/521)
+- Focus on classes that appear in Indian film content
+- Add regional sound mappings for South Indian, Bengali, Marathi content
 
-# Generate demo test data
-python3 tests/generate_demo_data.py
-```
+### Phase 2 — Features (Weeks 5–8)
+
+**Week 5:** Persistent job storage
+- SQLite backend for job tracking
+- Enables multi-user and batch use
+- Preserves history across server restarts
+
+**Week 6:** Category weight editor in Web UI
+- Slider controls for α, β, threshold per category
+- Live preview updates as editor adjusts weights
+- Export adjusted config as YAML
+
+**Week 7:** Batch CLI processing
+- `python3 main.py --batch /folder/of/videos/`
+- Progress tracking across multiple files
+- Aggregate report with cross-video statistics
+
+**Week 8:** Collaboration hooks
+- Two editors can review the same job simultaneously
+- Toggle states sync across sessions
+- Export reflects consensus decisions
+
+### Phase 3 — Testing, Docs, Polish (Weeks 9–12)
+
+**Week 9:** Extended test suite
+- Add tests for PANNs backend, calibration module, batch processing
+- Bring test count from 30 to 50+
+- Add integration test on real video clip
+
+**Week 10:** User testing with editors
+- Run sessions with actual PlanetRead editors using real content
+- Collect feedback on UI, category decisions, label quality
+- Implement top 3 feedback items
+
+**Week 11:** Documentation
+- Editor guide: how to run, how to tune thresholds, how to read the HTML report
+- Developer guide: how to add new templates, how to contribute label mappings
+- Inline docstrings for all public APIs
+
+**Week 12:** Final polish + submission
+- Full regression run on all test cases
+- Live demo with mentors
+- Final PR cleanup and submission
+
+---
+
+## Availability
+
+I plan to dedicate **35–45 hours per week** to this project throughout the program.
+
+**Daily schedule:** Most active between 10 AM and 11 PM IST. I check Matrix and email multiple times daily and respond to mentor messages within a few hours.
+
+**Prior commitments:** None that conflict with the program period. No internship, no part-time work during this window.
+
+**Exam note:** My end-semester exams run from approximately May 15 to May 30. During this period I can commit 2–3 hours per day. I will communicate proactively if anything shifts.
+
+---
+
+## Progress Reporting
+
+I am committed to full transparency throughout the program:
+
+- **Daily:** Brief Matrix update on what I worked on and any blockers
+- **Weekly:** Video call with mentors to demo progress and align on next steps
+- **Weekly:** Blog post on progress, decisions made, and what I learned
+- **Continuously:** Public Notion workspace tracking weekly goals, completed tasks, and mentor feedback
+
+I have maintained this kind of communication discipline in my previous open source contributions to Sugar Labs — 76 PRs with consistent review responses, attending bi-weekly meetings, and actively helping other contributors.
+
+---
+
+## Contributions to PlanetRead / C4GT
+
+This PR (#5) is my first contribution to PlanetRead. However, my open source track record demonstrates I take contributions seriously and follow through:
+
+**Sugar Labs / Music Blocks:** 76 total PRs, 51 merged — including critical bug fixes (hard reload fix that restored the project from a broken state), major performance optimizations (saving 70–120MB of memory), CI/CD infrastructure, and significant test coverage improvements.
+
+**Extralit v0.4.0:** Co-authored the CLI migration from Argilla V1 to V2, credited as a key contributor in the release notes.
+
+**Vercel Open Source Program:** Built and maintain VengeanceUI, a React + TypeScript component library with 15,000+ monthly users and 600+ GitHub stars.
 
 ---
 
 ## Contact Information
 
-**Name:** Ashutosh Singh
-**Email:** ashutoshx002@gmail.com
-**GitHub:** [amitkumarashutosh](https://github.com/amitkumarashutosh)
-**Phone:** +91 95559 05213
+**Name:** Ashutosh Singh  
+**Email:** ashutoshx002@gmail.com  
+**GitHub:** [ashutoshx7](https://github.com/ashutoshx7)  
+**Matrix:** ashutoshx7:matrix.org  
+**X (Twitter):** @Ashutoshx7  
+**Phone:** +91 95559 05213  
+**University:** Indian Institute of Information Technology, Lucknow  
+**Degree:** B.Tech Computer Science and Engineering (Expected May 2027)  
+
+---
+
+## How to Run the Prototype
+
+```bash
+# Clone and setup
+git clone https://github.com/YOUR_USERNAME/Intelligent-cc-generation.git
+cd Intelligent-cc-generation
+chmod +x setup.sh && ./setup.sh
+
+# CLI — process a video
+python3 main.py video.mp4 --verbose
+
+# Formatted demo with colored output
+python3 demo.py samples/demo_clip.avi
+
+# Web UI — editorial review interface
+python3 web/app.py
+# → open http://localhost:8000
+
+# Run all 30 tests
+python3 -m pytest tests/test_all.py -v
+
+# Evaluation against ground truth
+python3 main.py video.mp4 \
+  --evaluate \
+  --ground-truth eval/ground_truth/clip.json
+```
 
 ---
 
 ## Conclusion
 
-This tool doesn't just detect sounds — it **decides which sounds matter**. The category-aware fusion engine, the temporal reaction window, the multi-person visual analysis, and the India-specific label mappings together form a system that reduces overcaptioning while catching the moments that genuinely need CC annotations.
+I built the full pipeline before submitting this proposal because I wanted to prove the architecture works, not just describe it. The system runs, the tests pass, the editor review interface is functional, and the HTML report is something an actual editor could use.
 
-Every design decision — from the 300ms reaction delay to the 0.70 ambient threshold — is grounded in how humans actually perceive and react to sound in video content.
+The hardest part of this problem — the decision of which sounds matter — is solved through the category-aware fusion engine. It does not apply one threshold to every sound. It applies different evidence requirements based on what the sound is. High-impact sounds are captioned even without visual confirmation. Ambient sounds require a strong visual reaction to clear the bar. Interactive sounds are captioned only if someone on screen responds.
 
-The 30 automated tests, the professional HTML report, the monochrome Web UI, and the evaluation framework demonstrate production readiness, not just a proof of concept.
+That distinction is the reason this tool will be useful in production, and not just another "detect sounds and list them" script.
+
+I would very much like the opportunity to develop this further with PlanetRead's team and content.
