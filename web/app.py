@@ -217,20 +217,15 @@ def _run_pipeline_sync(job_id: str, video_path: str) -> dict:
     mapper = CategoryMapper(categories_path)
     engine = DecisionEngine(config, mapper)
 
-    all_events = [e.copy() for e in events]
     accepted = engine.decide(events)
-    for e in accepted:
-        e["cc_text"] = map_label(e["label"])
-
-    # Mark accepted in all_events
-    accepted_ids = {e["id"] for e in accepted}
-    for e in all_events:
+    for e in events:
         cat = mapper.get_category(e["label"])
         e["category"] = cat["category"]
         e["cc_text"] = map_label(e["label"])
-        if e["id"] not in accepted_ids:
-            e["accepted"] = False
-            e["combined_score"] = e.get("combined_score", 0)
+        e["combined_score"] = e.get("combined_score", 0.0)
+        e["accepted"] = e.get("accepted", False)
+        
+    all_events = events
 
     job["progress"] = 95
     job["stage"] = "Generating output..."

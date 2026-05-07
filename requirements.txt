@@ -8,6 +8,7 @@ opencv-python>=4.8.0
 numpy>=1.24.0
 scipy>=1.11.0
 webrtcvad>=2.0.10
+moviepy>=2.0.0
 
 # Config
 PyYAML>=6.0

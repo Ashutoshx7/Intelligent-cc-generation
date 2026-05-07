@@ -1,0 +1,95 @@
+INFO:     Started server process [268948]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2026-05-07 22:40:37,513 [INFO] __main__: Job 0fa07087: uploaded demo_clip.avi (485156 bytes)
+INFO:     127.0.0.1:50132 - "POST /api/upload HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50142 - "POST /api/process/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50150 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+2026-05-07 22:40:37,666 [INFO] src.audio.speech_filter: webrtcvad not available — using energy-based VAD fallback
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1778173837.835364  268958 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1778173838.919470  268958 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+2026-05-07 22:40:39,854 [INFO] src.audio.extractor: Using existing audio file: /home/ashutoshx7/c4gt/web/uploads/0fa07087/input_audio.wav
+2026-05-07 22:40:39,864 [INFO] src.audio.extractor: Loaded WAV: 15.0s, 16000Hz, range=[-0.623, 0.950]
+2026-05-07 22:40:39,864 [INFO] src.audio.speech_filter: Using energy-based VAD (threshold=0.015)
+2026-05-07 22:40:39,867 [INFO] src.audio.speech_filter: VAD found 9 speech segments (3.5s total speech)
+2026-05-07 22:40:39,867 [INFO] src.audio.yamnet_detector: Loading YAMNet model...
+2026-05-07 22:40:39,867 [INFO] absl: Using /tmp/tfhub_modules to cache modules.
+INFO:     127.0.0.1:50166 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+2026-05-07 22:40:41,549 [INFO] absl: Fingerprint not found. Saved model loading will continue.
+2026-05-07 22:40:41,549 [INFO] absl: path_and_singleprint metric could not be logged. Saved model loading will continue.
+2026-05-07 22:40:41,556 [INFO] src.audio.yamnet_detector: YAMNet loaded. 521 classes, threshold=0.3
+2026-05-07 22:40:41,694 [INFO] src.audio.yamnet_detector: YAMNet produced 31 frames (14.9s of audio)
+2026-05-07 22:40:41,695 [INFO] src.audio.yamnet_detector: Raw detections (after speech filter): 24
+2026-05-07 22:40:41,695 [INFO] src.audio.yamnet_detector: After merging: 17 events
+2026-05-07 22:40:41,839 [INFO] src.visual.scene_cut: Detected 0 scene cuts in 15.0s video
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1778173841.898319  269149 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1778173841.901179  269175 gl_context.cc:385] GL version: 3.2 (OpenGL ES 3.2 Mesa 25.2.8-0ubuntu0.24.04.1), renderer: Mesa Intel(R) UHD Graphics (ADL-S GT0.5)
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+W0000 00:00:1778173841.954599  269153 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1778173841.971382  269162 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+2026-05-07 22:40:41,971 [INFO] src.visual.pose_analyzer: PoseLandmarker initialized (Tasks API)
+W0000 00:00:1778173841.972587  269176 face_landmarker_graph.cc:174] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+I0000 00:00:1778173841.977035  269176 gl_context_egl.cc:85] Successfully initialized EGL. Major : 1 Minor: 5
+I0000 00:00:1778173841.980024  269200 gl_context.cc:385] GL version: 3.2 (OpenGL ES 3.2 Mesa 25.2.8-0ubuntu0.24.04.1), renderer: Mesa Intel(R) UHD Graphics (ADL-S GT0.5)
+W0000 00:00:1778173841.984035  269181 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1778173841.997404  269190 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+2026-05-07 22:40:41,999 [INFO] src.visual.face_analyzer: FaceLandmarker initialized (Tasks API)
+INFO:     127.0.0.1:50174 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+2026-05-07 22:40:44,351 [INFO] src.fusion.category_mapper: Loaded 37 class->category mappings
+2026-05-07 22:40:44,352 [INFO] src.fusion.decision_engine: Event #1 'White noise' [ambient]: audio=0.61 visual=0.00 combined=0.15 thresh=0.70 -> REJECT
+2026-05-07 22:40:44,352 [INFO] src.fusion.decision_engine: Event #2 'Noise' [ambient]: audio=0.67 visual=0.00 combined=0.17 thresh=0.70 -> REJECT
+2026-05-07 22:40:44,352 [INFO] src.fusion.decision_engine: Event #3 'Pink noise' [default]: audio=0.68 visual=0.00 combined=0.41 thresh=0.45 -> REJECT
+2026-05-07 22:40:44,352 [INFO] src.fusion.decision_engine: Event #4 'Synthesizer' [default]: audio=0.70 visual=0.00 combined=0.42 thresh=0.45 -> REJECT
+2026-05-07 22:40:44,352 [INFO] src.fusion.decision_engine: Event #6 'Rustle' [default]: audio=0.60 visual=0.00 combined=0.51 thresh=0.45 -> ACCEPT
+2026-05-07 22:40:44,352 [INFO] src.fusion.decision_engine: Event #7 'Beep, bleep' [default]: audio=0.74 visual=0.00 combined=0.45 thresh=0.45 -> REJECT
+2026-05-07 22:40:44,352 [INFO] src.fusion.decision_engine: Event #8 'Beep, bleep' [default]: audio=0.57 visual=0.00 combined=0.49 thresh=0.45 -> ACCEPT
+2026-05-07 22:40:44,352 [INFO] src.fusion.decision_engine: Event #9 'Pink noise' [default]: audio=0.71 visual=0.00 combined=0.58 thresh=0.45 -> ACCEPT
+2026-05-07 22:40:44,352 [INFO] src.fusion.decision_engine: Event #10 'Beep, bleep' [default]: audio=0.87 visual=0.00 combined=0.52 thresh=0.45 -> ACCEPT
+2026-05-07 22:40:44,352 [INFO] src.fusion.decision_engine: Event #12 'Rustle' [default]: audio=0.64 visual=0.00 combined=0.53 thresh=0.45 -> ACCEPT
+2026-05-07 22:40:44,352 [INFO] src.fusion.decision_engine: Event #13 'White noise' [ambient]: audio=0.64 visual=0.00 combined=0.31 thresh=0.70 -> REJECT
+2026-05-07 22:40:44,352 [INFO] src.fusion.decision_engine: Event #14 'Pink noise' [default]: audio=0.54 visual=0.00 combined=0.32 thresh=0.45 -> REJECT
+2026-05-07 22:40:44,352 [INFO] src.fusion.decision_engine: Event #15 'Music' [ambient]: audio=0.90 visual=0.00 combined=0.23 thresh=0.70 -> REJECT
+2026-05-07 22:40:44,352 [INFO] src.fusion.decision_engine: Event #16 'Noise' [ambient]: audio=0.62 visual=0.00 combined=0.30 thresh=0.70 -> REJECT
+2026-05-07 22:40:44,352 [INFO] src.fusion.decision_engine: Event #17 'Pink noise' [default]: audio=0.70 visual=0.00 combined=0.57 thresh=0.45 -> ACCEPT
+2026-05-07 22:40:44,352 [INFO] src.fusion.decision_engine: Accepted 6 / 15 events
+2026-05-07 22:40:44,353 [INFO] __main__: Job 0fa07087: pipeline complete. 6 CCs accepted
+INFO:     127.0.0.1:52464 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52470 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52486 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52502 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60282 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60298 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60302 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35856 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35860 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35872 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39890 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39902 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39908 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39924 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36928 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36942 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36958 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41190 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41204 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41210 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35730 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35734 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35742 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35756 - "GET /api/events/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34696 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34706 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34718 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34730 - "GET /api/status/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34738 - "GET /api/events/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58604 - "GET /api/events/0fa07087 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58612 - "GET /api/video/12bf7584 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40038 - "GET / HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [268948]

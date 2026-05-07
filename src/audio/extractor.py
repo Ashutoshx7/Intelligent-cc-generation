@@ -62,8 +62,44 @@ def extract_audio(video_path: str, output_path: str = None, sample_rate: int = 1
         logger.info(f"Audio extracted: {output_path} ({file_size} bytes)")
         return output_path
 
-    # No ffmpeg — try OpenCV-based fallback
-    logger.info("ffmpeg not found. Attempting OpenCV-based audio extraction...")
+    # No system ffmpeg — try moviepy (ships its own ffmpeg binary via imageio-ffmpeg)
+    logger.info("System ffmpeg not found. Trying moviepy (bundled ffmpeg)...")
+    try:
+        from moviepy import VideoFileClip
+        import scipy.io.wavfile as wavfile
+
+        clip = VideoFileClip(video_path)
+        if clip.audio is None:
+            logger.warning("Video has no audio track — creating silent WAV")
+            duration = clip.duration or 10.0
+            clip.close()
+            num_samples = int(duration * sample_rate)
+            silence = np.zeros(num_samples, dtype=np.int16)
+            wavfile.write(output_path, sample_rate, silence)
+            return output_path
+
+        # Extract audio to WAV via moviepy's bundled ffmpeg
+        clip.audio.write_audiofile(
+            output_path,
+            fps=sample_rate,
+            nbytes=2,        # 16-bit
+            codec='pcm_s16le',
+            ffmpeg_params=["-ac", "1"],  # mono
+            logger=None,     # suppress moviepy progress bar
+        )
+        clip.close()
+
+        file_size = os.path.getsize(output_path)
+        logger.info(f"Audio extracted via moviepy: {output_path} ({file_size} bytes)")
+        return output_path
+
+    except ImportError:
+        logger.warning("moviepy not installed — falling back to OpenCV silent WAV")
+    except Exception as moviepy_err:
+        logger.warning(f"moviepy extraction failed: {moviepy_err} — falling back to OpenCV silent WAV")
+
+    # Last resort: OpenCV-based silent WAV (visual-only mode)
+    logger.info("Creating silent WAV for visual-only mode...")
     try:
         import cv2
         import scipy.io.wavfile as wavfile
@@ -77,11 +113,8 @@ def extract_audio(video_path: str, output_path: str = None, sample_rate: int = 1
         duration = frame_count / fps if fps > 0 else 10.0
         cap.release()
 
-        # Generate a silent WAV file matching video duration.
-        # This allows visual analysis to run even without audio extraction.
-        # For real audio analysis, install ffmpeg.
         logger.warning(
-            f"Creating silent WAV ({duration:.1f}s) — install ffmpeg for real audio extraction"
+            f"Creating silent WAV ({duration:.1f}s) — install ffmpeg or moviepy for real audio"
         )
         num_samples = int(duration * sample_rate)
         silence = np.zeros(num_samples, dtype=np.int16)
@@ -91,8 +124,8 @@ def extract_audio(video_path: str, output_path: str = None, sample_rate: int = 1
 
     except Exception as fallback_err:
         raise RuntimeError(
-            f"Cannot extract audio: ffmpeg not installed and OpenCV fallback failed ({fallback_err}). "
-            f"Install ffmpeg ('apt install ffmpeg') or place a WAV file at {output_path}"
+            f"Cannot extract audio: no ffmpeg, moviepy failed, OpenCV failed ({fallback_err}). "
+            f"Install ffmpeg ('apt install ffmpeg') or moviepy ('pip install moviepy')"
         )
 
 
