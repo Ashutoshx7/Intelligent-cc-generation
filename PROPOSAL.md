@@ -269,11 +269,13 @@ A full editorial review interface built with FastAPI and vanilla HTML/CSS/JS —
 - Real-time processing progress bar with stage labels
 - Stats bar: Detected / Accepted / Filtered / Filter Rate
 - Interactive video player with timeline markers
-- **Live CC overlay on video player** — captions appear as cinematic pill-shaped badges *on* the video during playback, color-coded by category (red glow for high-impact, blue for interactive, purple for social)
+- **Live CC overlay on video player** — captions appear as cinematic pill-shaped badges *on* the video during playback, color-coded by category
+- **🎨 Caption Style Customizer** — real-time control over font, size, color, vertical position, and background opacity of captions
+- **⌨️ Keyboard Productivity** — `Space` for play/pause, `←/→` for seeking, and `J/K` for rapid jumping between suggested events
 - Event cards with CC label, timestamps, audio/visual scores, category badge, accept/reject toggle
 - Filter tabs: All / Accepted / Rejected
 - Live SRT preview that updates when toggles change
-- "Download SRT" and "Download SLS" export accepted events
+- **Dual Format Export** — Download accepted events in standard **SRT** or PlanetRead-native **SLS** format
 
 ### Evaluation Framework
 
@@ -470,7 +472,7 @@ This PR (#5) is my first contribution to PlanetRead. However, my open source tra
 
 ```bash
 # Clone and setup
-git clone https://github.com/YOUR_USERNAME/Intelligent-cc-generation.git
+git clone https://github.com/Ashutoshx7/Intelligent-cc-generation.git
 cd Intelligent-cc-generation
 chmod +x setup.sh && ./setup.sh
 
