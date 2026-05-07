@@ -448,7 +448,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 12px;
-    background: rgba(0, 0, 0, 0.78);
+    background: rgba(10, 10, 13, var(--cc-bg-alpha, 0.78));
     backdrop-filter: blur(16px) saturate(1.2);
     -webkit-backdrop-filter: blur(16px) saturate(1.2);
     padding: 10px 22px 10px 16px;
@@ -519,7 +519,7 @@ body {
 }
 
 .cc-badge.high-impact .cc-badge-label {
-    color: #fecaca;
+    color: inherit;
 }
 
 .cc-badge.high-impact .cc-badge-meta {
@@ -536,7 +536,7 @@ body {
     background: rgba(96, 165, 250, 0.10);
 }
 .cc-badge.interactive .cc-badge-label {
-    color: #dbeafe;
+    color: inherit;
 }
 
 /* ── Social — soft violet ── */
@@ -544,7 +544,7 @@ body {
     background: rgba(192, 132, 252, 0.10);
 }
 .cc-badge.social .cc-badge-label {
-    color: #ede9fe;
+    color: inherit;
 }
 
 @keyframes cc-appear {
