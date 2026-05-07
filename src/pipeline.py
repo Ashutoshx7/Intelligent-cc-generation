@@ -14,7 +14,7 @@ from src.visual.face_analyzer import FaceAnalyzer
 from src.fusion.category_mapper import CategoryMapper
 from src.fusion.decision_engine import DecisionEngine
 from src.output.label_mapper import map_label
-from src.output.srt_writer import write_srt, write_summary
+from src.output.srt_writer import write_srt, write_summary, write_sls
 from src.output.report_generator import write_json_report, write_html_report
 
 logger = logging.getLogger(__name__)
@@ -181,6 +181,8 @@ def run_pipeline(video_path: str, output_path: str,
 
     # Step 3.3: Write all output formats
     write_srt(accepted, output_path, config['output']['encoding'])
+    sls_path = output_path.replace('.srt', '.sls')
+    write_sls(accepted, sls_path, config['output']['encoding'])
     write_summary(accepted, all_events_copy, output_path)
     write_json_report(accepted, all_events_copy, output_path,
                       video_path=video_path, duration=audio_duration)

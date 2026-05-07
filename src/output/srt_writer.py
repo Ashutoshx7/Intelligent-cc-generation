@@ -102,3 +102,39 @@ def write_summary(events: list, all_events: list, output_path: str):
                     f"[{e.get('category', '?')}]) -> REJECTED\n")
 
     logger.info(f"Wrote summary to {summary_path}")
+
+
+def write_sls(events: list, output_path: str, encoding: str = "utf-8"):
+    """
+    Write accepted events to SLS (Same Language Subtitling) format.
+
+    SLS is PlanetRead's pipe-delimited format with score metadata:
+        sequence|start|end|cc_text|category|audio_conf|visual_conf|combined
+
+    Example:
+        1|00:00:12,480|00:00:13,440|[gunshot]|high_impact|0.98|0.00|1.00
+        2|00:00:28,320|00:00:28,800|[glass breaking]|high_impact|0.45|0.30|0.60
+
+    Args:
+        events: List of accepted event dicts.
+        output_path: Where to write the .sls file.
+        encoding: File encoding (default UTF-8).
+    """
+    sorted_events = sorted(events, key=lambda e: e["start_time"])
+
+    with open(output_path, 'w', encoding=encoding) as f:
+        # Header
+        f.write("sequence|start|end|cc_text|category|audio_conf|visual_conf|combined\n")
+
+        for i, event in enumerate(sorted_events, 1):
+            start = format_timestamp(event["start_time"])
+            end = format_timestamp(event["end_time"])
+            text = event.get("cc_text", f"[{event.get('label', 'unknown')}]")
+            cat = event.get("category", "default")
+            audio = event.get("confidence", 0)
+            visual = event.get("reaction_score", 0)
+            combined = event.get("combined_score", 0)
+
+            f.write(f"{i}|{start}|{end}|{text}|{cat}|{audio:.2f}|{visual:.2f}|{combined:.2f}\n")
+
+    logger.info(f"Wrote {len(sorted_events)} CC entries to SLS: {output_path}")

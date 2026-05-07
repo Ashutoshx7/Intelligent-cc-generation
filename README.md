@@ -71,6 +71,7 @@ The web interface provides:
 
 The CLI produces:
 - `<video>_cc.srt` — Standard SRT subtitle file with CC annotations
+- `<video>_cc.sls` — SLS (Same Language Subtitling) format with score metadata
 - `<video>_cc_summary.txt` — Human-readable report showing accepted/rejected events with scores
 
 ### Example SRT Output
@@ -166,7 +167,7 @@ python main.py samples/test_clip.avi --evaluate --ground-truth eval/ground_truth
 | Face analysis | MediaPipe FaceLandmarker (Tasks API) |
 | Scene cuts | OpenCV histogram comparison |
 | Config | YAML (all thresholds tunable) |
-| Output | Standard SRT |
+| Output | Standard SRT + SLS (PlanetRead) |
 | Web UI | FastAPI + Vanilla JS |
 
 ## Evaluation Metrics
@@ -197,9 +198,9 @@ python main.py samples/test_clip.avi --evaluate --ground-truth eval/ground_truth
 1. **Benchmark on real PlanetRead content** — Tune thresholds and category weights on actual Hindi/regional videos with editor feedback
 2. **PANNs backend** — Swap in PANNs for finer-grained classification (the data contract makes this a drop-in)
 3. **Confidence calibration** — Per-class percentile normalization on a representative sample
-4. **Persistent job storage** — Move from in-memory to SQLite/Redis for multi-user web deployment
-5. **VTT output format** — Trivially derivable from SRT, not yet implemented
-6. **Threshold tuning UI** — Expose category weights in the web interface for real-time editor adjustment
+5. **Persistent job storage** — Move from in-memory to SQLite/Redis for multi-user web deployment
+6. **VTT output format** — Trivially derivable from SRT, not yet implemented
+7. **Threshold tuning UI** — Expose category weights in the web interface for real-time editor adjustment
 
 ## License
 

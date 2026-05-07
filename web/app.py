@@ -333,6 +333,34 @@ async def export_srt(job_id: str):
                        media_type="text/plain")
 
 
+@app.get("/api/export-sls/{job_id}")
+async def export_sls(job_id: str):
+    """Export accepted events as SLS (Same Language Subtitling) file."""
+    if job_id not in jobs:
+        raise HTTPException(404, "Job not found")
+    job = jobs[job_id]
+
+    accepted = [e for e in job["events"] if e.get("accepted", False)]
+    accepted.sort(key=lambda e: e["start_time"])
+
+    lines = ["sequence|start|end|cc_text|category|audio_conf|visual_conf|combined"]
+    for i, e in enumerate(accepted, 1):
+        start = _fmt_ts(e["start_time"])
+        end = _fmt_ts(e["end_time"])
+        text = e.get("cc_text", f"[{e.get('label', 'unknown')}]")
+        cat = e.get("category", "default")
+        audio = e.get("confidence", 0)
+        visual = e.get("reaction_score", 0)
+        combined = e.get("combined_score", 0)
+        lines.append(f"{i}|{start}|{end}|{text}|{cat}|{audio:.2f}|{visual:.2f}|{combined:.2f}")
+
+    sls_path = UPLOAD_DIR / job_id / "output.sls"
+    sls_path.write_text("\n".join(lines))
+
+    return FileResponse(str(sls_path), filename=f"{job['filename']}_cc.sls",
+                       media_type="text/plain")
+
+
 @app.get("/api/video/{job_id}")
 async def serve_video(job_id: str):
     """Serve the uploaded video for playback."""
