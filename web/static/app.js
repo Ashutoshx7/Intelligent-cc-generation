@@ -124,6 +124,37 @@ function updatePlayhead() {
     if (videoDuration > 0) {
         document.getElementById('timeline-playhead').style.left = `${(v.currentTime / videoDuration) * 100}%`;
     }
+    updateCaptionOverlay(v.currentTime);
+}
+
+function updateCaptionOverlay(currentTime) {
+    const overlay = document.getElementById('cc-overlay');
+    // Find accepted event at current time
+    const active = allEvents.find(e =>
+        e.accepted &&
+        currentTime >= e.start_time &&
+        currentTime <= e.end_time
+    );
+
+    if (active) {
+        overlay.innerHTML = `
+            <span class="cc-text">${active.cc_text}
+                <span class="cc-category">${active.category}</span>
+            </span>`;
+        overlay.classList.add('visible');
+
+        // Highlight the active event card
+        document.querySelectorAll('.event-card').forEach(card => {
+            card.classList.remove('cc-active');
+        });
+        const activeCard = document.querySelector(`.event-card[data-event-id="${active.id}"]`);
+        if (activeCard) activeCard.classList.add('cc-active');
+    } else {
+        overlay.classList.remove('visible');
+        document.querySelectorAll('.event-card').forEach(card => {
+            card.classList.remove('cc-active');
+        });
+    }
 }
 
 function seekTo(t) {
@@ -147,6 +178,7 @@ function renderEvents() {
     filtered.forEach(ev => {
         const card = document.createElement('div');
         card.className = `event-card ${ev.accepted ? 'accepted-event' : 'rejected-event'}`;
+        card.setAttribute('data-event-id', ev.id);
         card.onclick = () => seekTo(ev.start_time);
 
         const sceneTag = ev.on_scene_cut ? '  ·  scene cut' : '';

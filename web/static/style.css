@@ -412,6 +412,7 @@ body {
     border: 1px solid var(--border);
     margin-bottom: 12px;
     background: #000;
+    position: relative;
 }
 
 .video-container video {
@@ -420,6 +421,47 @@ body {
     max-height: 380px;
     object-fit: contain;
     background: #000;
+}
+
+/* ─── Live CC Overlay ─── */
+.cc-overlay {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 10;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.cc-overlay.visible {
+    opacity: 1;
+}
+
+.cc-overlay .cc-text {
+    display: inline-block;
+    background: rgba(0, 0, 0, 0.82);
+    color: #ffe066;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    padding: 6px 18px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 224, 102, 0.25);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.cc-overlay .cc-category {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    color: rgba(255, 224, 102, 0.6);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 2px;
 }
 
 /* ─── Timeline ─── */
@@ -574,6 +616,13 @@ body {
 
 .event-card.rejected-event:hover {
     opacity: 0.8;
+}
+
+.event-card.cc-active {
+    border-color: #ffe066;
+    background: rgba(255, 224, 102, 0.08);
+    box-shadow: 0 0 12px rgba(255, 224, 102, 0.15);
+    opacity: 1;
 }
 
 .event-id {
