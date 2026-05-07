@@ -34,9 +34,12 @@ jobs = {}
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
-    """Serve the main UI."""
+    """Serve the main UI (no-cache to prevent stale overlay bug)."""
     html_path = STATIC_DIR / "index.html"
-    return HTMLResponse(content=html_path.read_text())
+    return HTMLResponse(
+        content=html_path.read_text(),
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache"}
+    )
 
 
 @app.post("/api/upload")
