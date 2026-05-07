@@ -129,8 +129,6 @@ function updatePlayhead() {
 
 function updateCaptionOverlay(currentTime) {
     const overlay = document.getElementById('cc-overlay');
-    // Show caption during event AND for 2 extra seconds after it ends
-    // so user can actually read it
     const LINGER = 2.0;
     const active = allEvents.find(e =>
         e.accepted &&
@@ -139,12 +137,23 @@ function updateCaptionOverlay(currentTime) {
     );
 
     if (active) {
-        const isHighImpact = active.category === 'high_impact';
-        const sizeClass = isHighImpact ? 'cc-high-impact' : '';
+        const cat = active.category || 'default';
+        const icons = {
+            high_impact: '💥', interactive: '🔔', social: '👥',
+            ambient: '🌿', default: '🔊'
+        };
+        const icon = icons[cat] || icons.default;
+        const conf = Math.round(active.confidence * 100);
+
         overlay.innerHTML = `
-            <span class="cc-text ${sizeClass}">${active.cc_text}
-                <span class="cc-category">${active.category.replace('_', ' ')}</span>
-            </span>`;
+            <div class="cc-badge ${cat.replace('_', '-')}">
+                <div class="cc-badge-icon">${icon}</div>
+                <div class="cc-badge-content">
+                    <div class="cc-badge-label">${active.cc_text}</div>
+                    <div class="cc-badge-meta">${cat.replace('_', ' ')}</div>
+                </div>
+                <div class="cc-badge-confidence">${conf}%</div>
+            </div>`;
         overlay.classList.add('visible');
 
         // Highlight the active event card
